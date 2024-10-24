@@ -22,11 +22,6 @@ fn setup(mut commands: Commands) {
         SpriteBundle {
             transform: Transform {
                 scale: Vec2::new(10.0, 10.0).extend(1.0),
-                translation: Vec3::new(0.0, 0.0, 0.0),
-                ..default()
-            },
-            sprite: Sprite {
-                color: Color::linear_rgb(1.0, 0.0, 0.0),
                 ..default()
             },
             ..default()
