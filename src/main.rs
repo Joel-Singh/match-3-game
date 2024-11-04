@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Resource)]
+#[derive(Component)]
 struct Board(Vec<Entity>);
 
 #[derive(Component)]
@@ -21,9 +21,11 @@ fn main() {
             }
         ))
         .add_systems(Startup, setup_camera)
-        .add_systems(Startup, setup)
+        .add_systems(Startup, (
+            spawn_board,
+            setup
+        ).chain())
         .add_systems(FixedUpdate, position_board_elements)
-        .insert_resource(Board(Vec::new()))
         .run();
 }
 
@@ -31,10 +33,17 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
+fn spawn_board( mut commands: Commands
+) { 
+    commands.spawn(Board(Vec::new()));
+}
+
 fn setup(
-    mut commands: Commands,
-    mut board: ResMut<Board>
+    mut board: Query<&mut Board>,
+    mut commands: Commands
 ) {
+    let mut board = board.get_single_mut().expect("Getting just spawned board");
+
     for _ in 0..BOARD_TOTAL_SHAPES {
         let spawned_shape = commands.spawn((
             Shape,
@@ -52,14 +61,16 @@ fn setup(
 }
 
 fn position_board_elements(
-    board: ResMut<Board>,
-    mut query: Query<&mut Transform, With<Shape>>
+    board: Query<&Board>,
+    mut shapes: Query<&mut Transform, With<Shape>>
 ) {
+    let board = board.get_single().unwrap();
+
     for (index, entity) in board.0.iter().enumerate() {
         let column: i32 = (index as i32 % 10) + 1;
         let row: i32 = (index as i32 / 10) + 1;
 
-        let [mut shape_transform] = query.get_many_mut([*entity]).expect("Entity in board exists");
+        let [mut shape_transform] = shapes.get_many_mut([*entity]).expect("Entity in board exists");
 
         shape_transform.translation.x = (SHAPE_SIZE * column) as f32;
         shape_transform.translation.y = (SHAPE_SIZE * row * -1) as f32;
