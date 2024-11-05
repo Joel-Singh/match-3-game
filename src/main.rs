@@ -11,7 +11,7 @@ const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
-const SHAPE_SIZE: i32 = 35;
+const SHAPE_DISTANCE: i32 = 35;
 
 fn main() {
     App::new()
@@ -83,7 +83,7 @@ fn position_board_elements(
 
         let [mut shape_transform] = shapes.get_many_mut([*entity]).unwrap();
 
-        shape_transform.translation.x = (SHAPE_SIZE * (column - 1)) as f32;
-        shape_transform.translation.y = (SHAPE_SIZE * (row - 1) * -1) as f32;
+        shape_transform.translation.x = (SHAPE_DISTANCE * (column - 1)) as f32;
+        shape_transform.translation.y = (SHAPE_DISTANCE * (row - 1) * -1) as f32;
     }
 }
