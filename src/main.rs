@@ -7,7 +7,7 @@ struct Board(Vec<Entity>);
 #[derive(Component)]
 struct Shape;
 
-const BOARD_POSITION: Transform = Transform::from_xyz(0.0, 0.0, 0.0);
+const BOARD_POSITION: Transform = Transform::from_xyz(200.0, -200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
@@ -32,20 +32,24 @@ fn main() {
 }
 
 fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default()).insert(BOARD_POSITION);
 }
 
 fn spawn_board( mut commands: Commands
 ) { 
-    commands.spawn(Board(Vec::new()));
+    commands.spawn((
+        Board(Vec::new()),
+        SpatialBundle::default()
+    ));
 }
 
 fn setup(
-    mut board: Query<&mut Board>,
+    mut board: Query<(&mut Board, Entity)>,
     mut commands: Commands
 ) {
-    let mut board = board.get_single_mut().expect("Getting just spawned board");
+    let (mut board, board_entity) = board.get_single_mut().unwrap();
 
+    let mut spawned_shapes: Vec<Entity> = Vec::new();
     for _ in 0..BOARD_TOTAL_SHAPES {
         let spawned_shape = commands.spawn((
             Shape,
@@ -58,8 +62,11 @@ fn setup(
             },
         ));
 
-        board.0.push(spawned_shape.id());
+        spawned_shapes.push(spawned_shape.id())
     }
+
+    commands.entity(board_entity).push_children(&spawned_shapes); 
+    board.0.extend(spawned_shapes);
 }
 
 fn position_board_elements(
