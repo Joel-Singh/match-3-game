@@ -7,7 +7,7 @@ struct Board(Vec<Entity>);
 #[derive(Component)]
 struct Shape;
 
-const BOARD_POSITION: Transform = Transform::from_xyz(200.0, -200.0, 0.0);
+const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
@@ -32,15 +32,17 @@ fn main() {
 }
 
 fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default()).insert(BOARD_POSITION);
+    commands.spawn(Camera2dBundle::default());
 }
 
 fn spawn_board( mut commands: Commands
 ) { 
     commands.spawn((
         Board(Vec::new()),
-        SpatialBundle::default()
-    ));
+        SpriteBundle {
+            ..default()
+        },
+    )).insert(BOARD_POSITION);
 }
 
 fn setup(
