@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 #[derive(Component)]
 struct Board(Vec<Entity>);
@@ -20,6 +21,7 @@ fn main() {
                 ..default()
             }
         ))
+        .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, (
             spawn_board,
