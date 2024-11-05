@@ -83,7 +83,7 @@ fn position_board_elements(
 
         let [mut shape_transform] = shapes.get_many_mut([*entity]).unwrap();
 
-        shape_transform.translation.x = (SHAPE_SIZE * column) as f32;
-        shape_transform.translation.y = (SHAPE_SIZE * row * -1) as f32;
+        shape_transform.translation.x = (SHAPE_SIZE * (column - 1)) as f32;
+        shape_transform.translation.y = (SHAPE_SIZE * (row - 1) * -1) as f32;
     }
 }
