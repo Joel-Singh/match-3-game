@@ -51,7 +51,6 @@ fn setup(
 ) {
     let (mut board, board_entity) = board.get_single_mut().unwrap();
 
-    let mut spawned_shapes: Vec<Entity> = Vec::new();
     for _ in 0..BOARD_TOTAL_SHAPES {
         let spawned_shape = commands.spawn((
             Shape,
@@ -62,13 +61,11 @@ fn setup(
                 },
                 ..default()
             },
-        ));
+        )).id();
 
-        spawned_shapes.push(spawned_shape.id())
+        commands.entity(board_entity).push_children(&[spawned_shape]); 
+        board.0.push(spawned_shape);
     }
-
-    commands.entity(board_entity).push_children(&spawned_shapes); 
-    board.0.extend(spawned_shapes);
 }
 
 fn position_board_elements(
