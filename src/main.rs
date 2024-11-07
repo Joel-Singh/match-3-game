@@ -11,8 +11,6 @@ const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
-const SHAPE_DISTANCE: i32 = 2;
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(
