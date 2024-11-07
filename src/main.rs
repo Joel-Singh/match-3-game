@@ -74,7 +74,7 @@ fn setup(
             },
         )).id();
 
-        commands.entity(board_entity).push_children(&[spawned_shape]); 
+        commands.entity(board_entity).add_child(spawned_shape);
         board.0.push(spawned_shape);
     }
 }
