@@ -42,7 +42,9 @@ fn spawn_board( mut commands: Commands
             style: Style {
                 width: Val::Px(400.),
                 height: Val::Px(400.),
-                justify_content: JustifyContent::Center,
+                row_gap: Val::Px(5.),
+                column_gap: Val::Px(5.),
+                padding: UiRect::all(Val::Px(5.)),
                 ..default()
             },
             background_color: Srgba::new(1.0,1.0,1.0,0.1).into(),
@@ -64,7 +66,6 @@ fn setup(
                 style: Style {
                     width: Val::Px(100.0),
                     height: Val::Px(100.0),
-                    margin: UiRect::all(Val::Px(10.0)),
                     ..default()
                 },
                 background_color: Color::srgb(1.0, 0.0, 0.0).into(),
