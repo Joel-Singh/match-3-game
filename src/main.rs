@@ -9,7 +9,7 @@ struct Shape;
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
-const BOARD_TOTAL_SHAPES: i32 = 3;
+const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
 const SHAPE_DISTANCE: i32 = 2;
 
@@ -45,6 +45,9 @@ fn spawn_board( mut commands: Commands
                 row_gap: Val::Px(5.),
                 column_gap: Val::Px(5.),
                 padding: UiRect::all(Val::Px(5.)),
+                grid_template_columns: RepeatedGridTrack::fr(10, 1.0),
+                grid_template_rows: RepeatedGridTrack::fr(10, 1.0),
+                display: Display::Grid,
                 ..default()
             },
             background_color: Srgba::new(1.0,1.0,1.0,0.1).into(),
@@ -64,8 +67,8 @@ fn setup(
             Shape::default(), 
             ButtonBundle {
                 style: Style {
-                    width: Val::Px(100.0),
-                    height: Val::Px(100.0),
+                    width: Val::Auto,
+                    height: Val::Auto,
                     ..default()
                 },
                 background_color: Color::srgb(1.0, 0.0, 0.0).into(),
