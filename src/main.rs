@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use rand::Rng;
 
 #[derive(Component)]
 struct Board(Vec<Entity>);
@@ -61,6 +62,7 @@ fn setup(
     let (mut board, board_entity) = board.get_single_mut().unwrap();
 
     for _ in 0..BOARD_TOTAL_SHAPES {
+        let mut rng = rand::thread_rng();
         let spawned_shape = commands.spawn((
             Shape::default(), 
             ButtonBundle {
@@ -69,7 +71,7 @@ fn setup(
                     height: Val::Auto,
                     ..default()
                 },
-                background_color: Color::srgb(1.0, 0.0, 0.0).into(),
+                background_color: Color::srgb(rng.gen(), rng.gen(), rng.gen()).into(),
                 ..default()
             },
         )).id();
