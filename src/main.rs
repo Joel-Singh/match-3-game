@@ -1,12 +1,17 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::*, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use rand::Rng;
+use rand::seq::SliceRandom;
 
 #[derive(Component)]
 struct Board(Vec<Entity>);
 
-#[derive(Component, Default)]
-struct Shape;
+#[derive(Component, Clone, Copy)]
+enum Shape {
+    Red,
+    Blue,
+    Green,
+    Pink,
+}
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
@@ -64,18 +69,10 @@ fn setup(
 
     for _ in 0..BOARD_TOTAL_SHAPES {
         let mut rng = rand::thread_rng();
-        let spawned_shape = commands.spawn((
-            Shape::default(), 
-            ButtonBundle {
-                style: Style {
-                    width: Val::Auto,
-                    height: Val::Auto,
-                    ..default()
-                },
-                background_color: Color::srgb(rng.gen(), rng.gen(), rng.gen()).into(),
-                ..default()
-            },
-        )).id();
+        let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
+        let random_color = *colors.choose(&mut rng).unwrap();
+
+        let spawned_shape = commands.spawn(create_shape(random_color)).id();
 
         commands.entity(board_entity).add_child(spawned_shape);
         board.0.push(spawned_shape);
@@ -109,4 +106,26 @@ fn swap_buttons_on_press(
             }
         }
     }
+}
+
+fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
+    let color = match shape {
+        Shape::Red => RED_500,
+        Shape::Blue => BLUE_500,
+        Shape::Green => GREEN_500,
+        Shape::Pink => PINK_500,
+    };
+
+    (
+        shape, 
+        ButtonBundle {
+            style: Style {
+                width: Val::Auto,
+                height: Val::Auto,
+                ..default()
+            },
+            background_color: color.into(),
+            ..default()
+        },
+    )
 }
