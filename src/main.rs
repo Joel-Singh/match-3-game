@@ -51,8 +51,8 @@ fn spawn_board( mut commands: Commands
                 row_gap: Val::Px(5.),
                 column_gap: Val::Px(5.),
                 padding: UiRect::all(Val::Px(5.)),
-                grid_template_columns: RepeatedGridTrack::fr(10, 1.0),
-                grid_template_rows: RepeatedGridTrack::fr(10, 1.0),
+                grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+                grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
                 display: Display::Grid,
                 ..default()
             },
