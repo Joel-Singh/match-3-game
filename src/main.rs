@@ -11,6 +11,7 @@ enum Shape {
     Blue,
     Green,
     Pink,
+    Empty,
 }
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
@@ -114,6 +115,7 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
         Shape::Blue => BLUE_500,
         Shape::Green => GREEN_500,
         Shape::Pink => PINK_500,
+        Shape::Empty => ZINC_900,
     };
 
     (
