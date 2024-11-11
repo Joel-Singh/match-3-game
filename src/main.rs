@@ -158,7 +158,7 @@ fn empty_horizontal_matches(
     mut commands: Commands
 ) {
     let board = board.get_single().unwrap();
-    let matches = get_horizontal_matches(board, shape_q);
+    let matches = get_matches(board, shape_q);
 
     for board_match in matches {
         for entity in board_match {
@@ -168,7 +168,7 @@ fn empty_horizontal_matches(
 }
 
 
-fn get_horizontal_matches(
+fn get_matches(
     board: &Children,
     shape_q: Query<&Shape>
 ) -> Vec<[Entity; 3]> {
@@ -178,6 +178,22 @@ fn get_horizontal_matches(
             let first_shape = board.get(get_index(row, col)).unwrap();
             let next_shape = board.get(get_index(row, col + 1)).unwrap();
             let next_next_shape = board.get(get_index(row, col + 2)).unwrap();
+
+            let shapes = shape_q.get_many([*first_shape, *next_shape, *next_next_shape]).unwrap();
+
+            if *shapes[0] == Shape::Empty {
+                continue
+            } else if *shapes[0] == *shapes[1] &&  *shapes[0] == *shapes[2] {
+                matches.push([*first_shape, *next_shape, *next_next_shape])
+            }
+        }
+    };
+
+    for row in 1..=BOARD_SIZE-2 {
+        for col in 1..=(BOARD_SIZE) {
+            let first_shape = board.get(get_index(row, col)).unwrap();
+            let next_shape = board.get(get_index(row + 1, col)).unwrap();
+            let next_next_shape = board.get(get_index(row + 2, col)).unwrap();
 
             let shapes = shape_q.get_many([*first_shape, *next_shape, *next_next_shape]).unwrap();
 
