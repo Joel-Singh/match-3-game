@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 #[derive(Component)]
 struct Board();
 
-#[derive(Component, Clone, Copy, PartialEq)]
+#[derive(Component, Reflect, Clone, Copy, PartialEq)]
 enum Shape {
     Red,
     Blue,
@@ -26,6 +26,7 @@ fn main() {
                 ..default()
             }
         ))
+        .register_type::<Shape>()
         .add_plugins(WorldInspectorPlugin::new())
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, (
