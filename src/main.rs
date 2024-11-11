@@ -173,6 +173,8 @@ fn get_matches(
     shape_q: Query<&Shape>
 ) -> Vec<[Entity; 3]> {
     let mut matches: Vec<[Entity; 3]> = vec![];
+
+    // Check horizontally
     for row in 1..=BOARD_SIZE {
         for col in 1..=(BOARD_SIZE-2) {
             let first_shape = board.get(get_index(row, col)).unwrap();
@@ -189,6 +191,7 @@ fn get_matches(
         }
     };
 
+    // Check vertically
     for row in 1..=BOARD_SIZE-2 {
         for col in 1..=(BOARD_SIZE) {
             let first_shape = board.get(get_index(row, col)).unwrap();
