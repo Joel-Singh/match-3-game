@@ -32,9 +32,9 @@ fn main() {
         .add_systems(Startup, (
             spawn_board,
             setup,
-            empty_horizontal_matches,
         ).chain())
         .add_systems(FixedUpdate, swap_buttons_on_press)
+        .add_systems(FixedUpdate, empty_horizontal_matches)
         .add_systems(FixedUpdate, update_shape_color)
         .run();
 }
@@ -140,7 +140,15 @@ fn update_shape_color(
     mut commands: Commands
 ) {
     for (shape, e) in shape.iter_mut() {
-        commands.entity(e).insert(create_shape(*shape));
+        let color = match shape {
+            Shape::Red => RED_500,
+            Shape::Blue => BLUE_500,
+            Shape::Green => GREEN_500,
+            Shape::Pink => PINK_500,
+            Shape::Empty => ZINC_900,
+        };
+
+        commands.entity(e).insert(BackgroundColor(color.into()));
     }
 }
 
