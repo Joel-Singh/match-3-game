@@ -3,7 +3,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use rand::seq::SliceRandom;
 
 #[derive(Component)]
-struct Board(Vec<Entity>);
+struct Board();
 
 #[derive(Component, Clone, Copy, PartialEq)]
 enum Shape {
@@ -45,7 +45,7 @@ fn setup_camera(mut commands: Commands) {
 fn spawn_board( mut commands: Commands
 ) { 
     commands.spawn((
-        Board(Vec::new()),
+        Board(),
         NodeBundle {
             style: Style {
                 width: Val::Px(400.),
@@ -65,10 +65,10 @@ fn spawn_board( mut commands: Commands
 }
 
 fn setup(
-    mut board: Query<(&mut Board, Entity)>,
+    mut board: Query<Entity, With<Board>>,
     mut commands: Commands
 ) {
-    let (mut board, board_entity) = board.get_single_mut().unwrap();
+    let board = board.get_single_mut().unwrap();
 
     for _ in 0..BOARD_TOTAL_SHAPES {
         let mut rng = rand::thread_rng();
@@ -77,8 +77,7 @@ fn setup(
 
         let spawned_shape = commands.spawn(create_shape(random_color)).id();
 
-        commands.entity(board_entity).add_child(spawned_shape);
-        board.0.push(spawned_shape);
+        commands.entity(board).add_child(spawned_shape);
     }
 }
 
@@ -146,7 +145,7 @@ fn update_shape_color(
 
 fn empty_horizontal_matches(
     shape_q: Query<&Shape>,
-    board: Query<&Board>,
+    board: Query<&Children, With<Board>>,
     mut commands: Commands
 ) {
     let board = board.get_single().unwrap();
@@ -161,22 +160,22 @@ fn empty_horizontal_matches(
 
 
 fn get_horizontal_matches(
-    board: &Board,
+    board: &Children,
     shape_q: Query<&Shape>
 ) -> Vec<[Entity; 3]> {
     let mut matches: Vec<[Entity; 3]> = vec![];
     for row in 1..=BOARD_SIZE {
         for col in 1..=(BOARD_SIZE-2) {
-            let first_shape = board.0[get_index(row, col)];
-            let next_shape = board.0[get_index(row, col + 1)];
-            let next_next_shape = board.0[get_index(row, col + 2)];
+            let first_shape = board.get(get_index(row, col)).unwrap();
+            let next_shape = board.get(get_index(row, col + 1)).unwrap();
+            let next_next_shape = board.get(get_index(row, col + 2)).unwrap();
 
-            let shapes = shape_q.get_many([first_shape, next_shape, next_next_shape]).unwrap();
+            let shapes = shape_q.get_many([*first_shape, *next_shape, *next_next_shape]).unwrap();
 
             if *shapes[0] == Shape::Empty {
                 continue
             } else if *shapes[0] == *shapes[1] &&  *shapes[0] == *shapes[2] {
-                matches.push([first_shape, next_shape, next_next_shape])
+                matches.push([*first_shape, *next_shape, *next_next_shape])
             }
         }
     };
