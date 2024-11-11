@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 #[derive(Component)]
 struct Board(Vec<Entity>);
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, PartialEq)]
 enum Shape {
     Red,
     Blue,
@@ -30,9 +30,11 @@ fn main() {
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, (
             spawn_board,
-            setup
+            setup,
+            empty_horizontal_matches,
         ).chain())
         .add_systems(FixedUpdate, swap_buttons_on_press)
+        .add_systems(FixedUpdate, update_shape_color)
         .run();
 }
 
@@ -130,4 +132,58 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
             ..default()
         },
     )
+}
+
+
+fn update_shape_color(
+    mut shape: Query<(&Shape, Entity), Changed<Shape>>,
+    mut commands: Commands
+) {
+    for (shape, e) in shape.iter_mut() {
+        commands.entity(e).insert(create_shape(*shape));
+    }
+}
+
+fn empty_horizontal_matches(
+    shape_q: Query<&Shape>,
+    board: Query<&Board>,
+    mut commands: Commands
+) {
+    let board = board.get_single().unwrap();
+    let matches = get_horizontal_matches(board, shape_q);
+
+    for board_match in matches {
+        for entity in board_match {
+            commands.entity(entity).insert(Shape::Empty);
+        }
+    }
+}
+
+
+fn get_horizontal_matches(
+    board: &Board,
+    shape_q: Query<&Shape>
+) -> Vec<[Entity; 3]> {
+    let mut matches: Vec<[Entity; 3]> = vec![];
+    for row in 1..=BOARD_SIZE {
+        for col in 1..=(BOARD_SIZE-2) {
+            let first_shape = board.0[get_index(row, col)];
+            let next_shape = board.0[get_index(row, col + 1)];
+            let next_next_shape = board.0[get_index(row, col + 2)];
+
+            let shapes = shape_q.get_many([first_shape, next_shape, next_next_shape]).unwrap();
+
+            if *shapes[0] == Shape::Empty {
+                continue
+            } else if *shapes[0] == *shapes[1] &&  *shapes[0] == *shapes[2] {
+                matches.push([first_shape, next_shape, next_next_shape])
+            }
+        }
+    };
+
+    return matches;
+
+    fn get_index(row: i32, col: i32) -> usize {
+        ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
+    }
 }
