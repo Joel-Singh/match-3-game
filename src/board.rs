@@ -82,24 +82,25 @@ fn swap_shapes_on_press(
     mut last_pressed_button: Local<Option<Entity>>,
 ) {
     for (interaction, just_pressed_button) in &mut interaction_query {
-        if let Interaction::Pressed = *interaction {
-            match *last_pressed_button {
-                None => *last_pressed_button = Some(just_pressed_button),
-                Some(last_pressed_button_e) => {
-                    let mut board_children = board_children_q.get_single_mut().unwrap();
-                    let last_pressed_button_i = board_children
-                        .iter()
-                        .position(|e| *e == last_pressed_button_e)
-                        .unwrap();
-                    let just_pressed_button_i = board_children
-                        .iter()
-                        .position(|e| *e == just_pressed_button)
-                        .unwrap();
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+        match *last_pressed_button {
+            None => *last_pressed_button = Some(just_pressed_button),
+            Some(last_pressed_button_e) => {
+                let mut board_children = board_children_q.get_single_mut().unwrap();
+                let last_pressed_button_i = board_children
+                    .iter()
+                    .position(|e| *e == last_pressed_button_e)
+                    .unwrap();
+                let just_pressed_button_i = board_children
+                    .iter()
+                    .position(|e| *e == just_pressed_button)
+                    .unwrap();
 
-                    board_children.swap(last_pressed_button_i, just_pressed_button_i);
+                board_children.swap(last_pressed_button_i, just_pressed_button_i);
 
-                    *last_pressed_button = None;
-                }
+                *last_pressed_button = None;
             }
         }
     }
