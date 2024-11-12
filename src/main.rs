@@ -33,7 +33,7 @@ fn main() {
             spawn_board,
             setup,
         ).chain())
-        .add_systems(FixedUpdate, swap_buttons_on_press)
+        .add_systems(FixedUpdate, swap_shapes_on_press)
         .add_systems(FixedUpdate, empty_horizontal_matches)
         .add_systems(FixedUpdate, update_shape_color)
         .run();
@@ -82,7 +82,7 @@ fn setup(
     }
 }
 
-fn swap_buttons_on_press(
+fn swap_shapes_on_press(
     mut interaction_query: Query<
         (&Interaction, Entity),
         (Changed<Interaction>, With<Button>, With<Shape>),
