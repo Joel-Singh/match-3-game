@@ -22,7 +22,6 @@ enum Shape {
     Blue,
     Green,
     Pink,
-    Empty,
 }
 
 impl Shape {
@@ -32,7 +31,6 @@ impl Shape {
             Shape::Blue => BLUE_500.into(),
             Shape::Green => GREEN_500.into(),
             Shape::Pink => PINK_500.into(),
-            Shape::Empty => ZINC_900.into(),
         }
     }
 }
@@ -44,7 +42,7 @@ const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 pub(crate) fn board(app: &mut App) {
     app.add_systems(Startup, (spawn_board, setup).chain())
         .add_systems(FixedUpdate, swap_shapes_on_press)
-        .add_systems(FixedUpdate, empty_matches)
+        .add_systems(FixedUpdate, replace_matches)
         .add_systems(FixedUpdate, update_shape_color);
 }
 
@@ -71,15 +69,19 @@ fn spawn_board(mut commands: Commands) {
         .insert(BOARD_POSITION);
 }
 
+fn get_random_shape() -> Shape {
+    let mut rng = rand::thread_rng();
+    let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
+    let random_color = *colors.choose(&mut rng).unwrap();
+
+    return random_color;
+}
+
 fn setup(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
     let board = board.get_single_mut().unwrap();
 
     for _ in 0..BOARD_TOTAL_SHAPES {
-        let mut rng = rand::thread_rng();
-        let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
-        let random_color = *colors.choose(&mut rng).unwrap();
-
-        let spawned_shape = commands.spawn(create_shape(random_color)).id();
+        let spawned_shape = commands.spawn(create_shape(get_random_shape())).id();
 
         commands.entity(board).add_child(spawned_shape);
     }
@@ -157,7 +159,7 @@ fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut co
     }
 }
 
-fn empty_matches(
+fn replace_matches(
     shape_q: Query<&Shape>,
     board: Query<&Children, With<Board>>,
     mut commands: Commands,
@@ -167,7 +169,7 @@ fn empty_matches(
 
     for board_match in matches {
         for entity in board_match {
-            commands.entity(entity).insert(Shape::Empty);
+            commands.entity(entity).insert(get_random_shape());
         }
     }
 }
@@ -186,9 +188,7 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
                 .get_many([*first_shape, *next_shape, *next_next_shape])
                 .unwrap();
 
-            if *shapes[0] == Shape::Empty {
-                continue;
-            } else if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
+            if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
                 matches.push([*first_shape, *next_shape, *next_next_shape])
             }
         }
@@ -205,9 +205,7 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
                 .get_many([*first_shape, *next_shape, *next_next_shape])
                 .unwrap();
 
-            if *shapes[0] == Shape::Empty {
-                continue;
-            } else if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
+            if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
                 matches.push([*first_shape, *next_shape, *next_next_shape])
             }
         }
