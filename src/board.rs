@@ -8,6 +8,12 @@ impl Board {
     fn get_index(row: usize, col: usize) -> usize {
         ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
     }
+
+    fn get_row_col(index: usize) -> (usize, usize) {
+        let row = index / BOARD_SIZE + 1;
+        let col = (index % BOARD_SIZE) + 1;
+        return (row, col)
+    }
 }
 
 #[derive(Component, Reflect, Clone, Copy, PartialEq)]
@@ -112,7 +118,15 @@ fn swap_shapes_on_press(
                     .position(|e| *e == just_pressed_button)
                     .unwrap();
 
-                board_children.swap(last_pressed_button_i, just_pressed_button_i);
+                let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
+                let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
+                let delta_x = ( x_1 as i32 - x_2 as i32).abs();
+                let delta_y = ( y_1 as i32 - y_2 as i32).abs();
+
+                let is_next_to = (delta_x + delta_y) == 1;
+                if is_next_to {
+                    board_children.swap(last_pressed_button_i, just_pressed_button_i);
+                }
 
                 commands.entity(last_pressed_button_e).insert(Outline::default());
 
