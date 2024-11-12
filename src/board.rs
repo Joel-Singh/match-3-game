@@ -13,6 +13,18 @@ enum Shape {
     Empty,
 }
 
+impl Shape {
+    fn color(&self) -> BackgroundColor {
+        match self {
+            Shape::Red => RED_500.into(),
+            Shape::Blue => BLUE_500.into(),
+            Shape::Green => GREEN_500.into(),
+            Shape::Pink => PINK_500.into(),
+            Shape::Empty => ZINC_900.into(),
+        }
+    }
+}
+
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
@@ -94,14 +106,6 @@ fn swap_shapes_on_press(
 }
 
 fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
-    let color = match shape {
-        Shape::Red => RED_500,
-        Shape::Blue => BLUE_500,
-        Shape::Green => GREEN_500,
-        Shape::Pink => PINK_500,
-        Shape::Empty => ZINC_900,
-    };
-
     (
         shape,
         ButtonBundle {
@@ -110,7 +114,7 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
                 height: Val::Auto,
                 ..default()
             },
-            background_color: color.into(),
+            background_color: shape.color(),
             ..default()
         },
     )
@@ -118,15 +122,7 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
 
 fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut commands: Commands) {
     for (shape, e) in shape.iter_mut() {
-        let color = match shape {
-            Shape::Red => RED_500,
-            Shape::Blue => BLUE_500,
-            Shape::Green => GREEN_500,
-            Shape::Pink => PINK_500,
-            Shape::Empty => ZINC_900,
-        };
-
-        commands.entity(e).insert(BackgroundColor(color.into()));
+        commands.entity(e).insert(shape.color());
     }
 }
 
