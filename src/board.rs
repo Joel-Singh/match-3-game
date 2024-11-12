@@ -44,7 +44,7 @@ const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 pub(crate) fn board(app: &mut App) {
     app.add_systems(Startup, (spawn_board, setup).chain())
         .add_systems(FixedUpdate, swap_shapes_on_press)
-        .add_systems(FixedUpdate, empty_horizontal_matches)
+        .add_systems(FixedUpdate, empty_matches)
         .add_systems(FixedUpdate, update_shape_color);
 }
 
@@ -157,7 +157,7 @@ fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut co
     }
 }
 
-fn empty_horizontal_matches(
+fn empty_matches(
     shape_q: Query<&Shape>,
     board: Query<&Children, With<Board>>,
     mut commands: Commands,
