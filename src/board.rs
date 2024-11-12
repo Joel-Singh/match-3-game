@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 struct Board();
 
 impl Board {
-    fn get_index(row: i32, col: i32) -> usize {
+    fn get_index(row: usize, col: usize) -> usize {
         ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
     }
 }
@@ -32,8 +32,8 @@ impl Shape {
 }
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
-const BOARD_SIZE: i32 = 10;
-const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
+const BOARD_SIZE: usize = 10;
+const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
     app.add_systems(Startup, (spawn_board, setup).chain())
