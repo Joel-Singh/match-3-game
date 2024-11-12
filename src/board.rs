@@ -4,6 +4,12 @@ use rand::seq::SliceRandom;
 #[derive(Component)]
 struct Board();
 
+impl Board {
+    fn get_index(row: i32, col: i32) -> usize {
+        ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
+    }
+}
+
 #[derive(Component, Reflect, Clone, Copy, PartialEq)]
 enum Shape {
     Red,
@@ -148,9 +154,9 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     // Check horizontally
     for row in 1..=BOARD_SIZE {
         for col in 1..=(BOARD_SIZE - 2) {
-            let first_shape = board.get(get_index(row, col)).unwrap();
-            let next_shape = board.get(get_index(row, col + 1)).unwrap();
-            let next_next_shape = board.get(get_index(row, col + 2)).unwrap();
+            let first_shape = board.get(Board::get_index(row, col)).unwrap();
+            let next_shape = board.get(Board::get_index(row, col + 1)).unwrap();
+            let next_next_shape = board.get(Board::get_index(row, col + 2)).unwrap();
 
             let shapes = shape_q
                 .get_many([*first_shape, *next_shape, *next_next_shape])
@@ -167,9 +173,9 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     // Check vertically
     for row in 1..=BOARD_SIZE - 2 {
         for col in 1..=(BOARD_SIZE) {
-            let first_shape = board.get(get_index(row, col)).unwrap();
-            let next_shape = board.get(get_index(row + 1, col)).unwrap();
-            let next_next_shape = board.get(get_index(row + 2, col)).unwrap();
+            let first_shape = board.get(Board::get_index(row, col)).unwrap();
+            let next_shape = board.get(Board::get_index(row + 1, col)).unwrap();
+            let next_next_shape = board.get(Board::get_index(row + 2, col)).unwrap();
 
             let shapes = shape_q
                 .get_many([*first_shape, *next_shape, *next_next_shape])
@@ -184,8 +190,4 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     }
 
     return matches;
-
-    fn get_index(row: i32, col: i32) -> usize {
-        ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
-    }
 }
