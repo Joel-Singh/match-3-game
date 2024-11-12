@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
+use board::board;
 
 fn main() {
     App::new()
@@ -10,7 +11,7 @@ fn main() {
             ..default()
         }))
         .add_plugins(WorldInspectorPlugin::new())
-        .add_plugins(board::board)
+        .add_plugins(board)
         .add_systems(Startup, setup_camera)
         .run();
 }
