@@ -86,13 +86,21 @@ fn swap_shapes_on_press(
     >,
     mut board_children_q: Query<&mut Children, With<Board>>,
     mut last_pressed_button: Local<Option<Entity>>,
+    mut commands: Commands
 ) {
     for (interaction, just_pressed_button) in &mut interaction_query {
         if *interaction != Interaction::Pressed {
             continue;
         }
         match *last_pressed_button {
-            None => *last_pressed_button = Some(just_pressed_button),
+            None => {
+                *last_pressed_button = Some(just_pressed_button);
+                commands.entity(just_pressed_button).insert(Outline {
+                    width: Val::Px(3.0),
+                    color: PINK_950.into(),
+                    ..default()
+                });
+            },
             Some(last_pressed_button_e) => {
                 let mut board_children = board_children_q.get_single_mut().unwrap();
                 let last_pressed_button_i = board_children
@@ -105,6 +113,8 @@ fn swap_shapes_on_press(
                     .unwrap();
 
                 board_children.swap(last_pressed_button_i, just_pressed_button_i);
+
+                commands.entity(last_pressed_button_e).insert(Outline::default());
 
                 *last_pressed_button = None;
             }
