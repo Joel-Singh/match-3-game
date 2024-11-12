@@ -13,48 +13,41 @@ enum Shape {
     Empty,
 }
 
-
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: i32 = 10;
 const BOARD_TOTAL_SHAPES: i32 = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
-    app
-    .add_systems(Startup, (
-        spawn_board,
-        setup,
-    ).chain())
-    .add_systems(FixedUpdate, swap_shapes_on_press)
-    .add_systems(FixedUpdate, empty_horizontal_matches)
-    .add_systems(FixedUpdate, update_shape_color);
+    app.add_systems(Startup, (spawn_board, setup).chain())
+        .add_systems(FixedUpdate, swap_shapes_on_press)
+        .add_systems(FixedUpdate, empty_horizontal_matches)
+        .add_systems(FixedUpdate, update_shape_color);
 }
 
-fn spawn_board( mut commands: Commands
-) { 
-    commands.spawn((
-        Board(),
-        NodeBundle {
-            style: Style {
-                width: Val::Px(400.),
-                height: Val::Px(400.),
-                row_gap: Val::Px(5.),
-                column_gap: Val::Px(5.),
-                padding: UiRect::all(Val::Px(5.)),
-                grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                display: Display::Grid,
+fn spawn_board(mut commands: Commands) {
+    commands
+        .spawn((
+            Board(),
+            NodeBundle {
+                style: Style {
+                    width: Val::Px(400.),
+                    height: Val::Px(400.),
+                    row_gap: Val::Px(5.),
+                    column_gap: Val::Px(5.),
+                    padding: UiRect::all(Val::Px(5.)),
+                    grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+                    grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+                    display: Display::Grid,
+                    ..default()
+                },
+                background_color: Srgba::new(1.0, 1.0, 1.0, 0.1).into(),
                 ..default()
             },
-            background_color: Srgba::new(1.0,1.0,1.0,0.1).into(),
-            ..default()
-        },
-    )).insert(BOARD_POSITION);
+        ))
+        .insert(BOARD_POSITION);
 }
 
-fn setup(
-    mut board: Query<Entity, With<Board>>,
-    mut commands: Commands
-) {
+fn setup(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
     let board = board.get_single_mut().unwrap();
 
     for _ in 0..BOARD_TOTAL_SHAPES {
@@ -76,17 +69,20 @@ fn swap_shapes_on_press(
     mut board_children_q: Query<&mut Children, With<Board>>,
     mut last_pressed_button: Local<Option<Entity>>,
 ) {
-    for (
-        interaction,
-        just_pressed_button
-    ) in &mut interaction_query {
+    for (interaction, just_pressed_button) in &mut interaction_query {
         if let Interaction::Pressed = *interaction {
             match *last_pressed_button {
                 None => *last_pressed_button = Some(just_pressed_button),
                 Some(last_pressed_button_e) => {
                     let mut board_children = board_children_q.get_single_mut().unwrap();
-                    let last_pressed_button_i = board_children.iter().position(|e| *e == last_pressed_button_e).unwrap();
-                    let just_pressed_button_i = board_children.iter().position(|e| *e == just_pressed_button).unwrap();
+                    let last_pressed_button_i = board_children
+                        .iter()
+                        .position(|e| *e == last_pressed_button_e)
+                        .unwrap();
+                    let just_pressed_button_i = board_children
+                        .iter()
+                        .position(|e| *e == just_pressed_button)
+                        .unwrap();
 
                     board_children.swap(last_pressed_button_i, just_pressed_button_i);
 
@@ -107,7 +103,7 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
     };
 
     (
-        shape, 
+        shape,
         ButtonBundle {
             style: Style {
                 width: Val::Auto,
@@ -120,11 +116,7 @@ fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
     )
 }
 
-
-fn update_shape_color(
-    mut shape: Query<(&Shape, Entity), Changed<Shape>>,
-    mut commands: Commands
-) {
+fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut commands: Commands) {
     for (shape, e) in shape.iter_mut() {
         let color = match shape {
             Shape::Red => RED_500,
@@ -141,7 +133,7 @@ fn update_shape_color(
 fn empty_horizontal_matches(
     shape_q: Query<&Shape>,
     board: Query<&Children, With<Board>>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     let board = board.get_single().unwrap();
     let matches = get_matches(board, shape_q);
@@ -153,46 +145,46 @@ fn empty_horizontal_matches(
     }
 }
 
-
-fn get_matches(
-    board: &Children,
-    shape_q: Query<&Shape>
-) -> Vec<[Entity; 3]> {
+fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     let mut matches: Vec<[Entity; 3]> = vec![];
 
     // Check horizontally
     for row in 1..=BOARD_SIZE {
-        for col in 1..=(BOARD_SIZE-2) {
+        for col in 1..=(BOARD_SIZE - 2) {
             let first_shape = board.get(get_index(row, col)).unwrap();
             let next_shape = board.get(get_index(row, col + 1)).unwrap();
             let next_next_shape = board.get(get_index(row, col + 2)).unwrap();
 
-            let shapes = shape_q.get_many([*first_shape, *next_shape, *next_next_shape]).unwrap();
+            let shapes = shape_q
+                .get_many([*first_shape, *next_shape, *next_next_shape])
+                .unwrap();
 
             if *shapes[0] == Shape::Empty {
-                continue
-            } else if *shapes[0] == *shapes[1] &&  *shapes[0] == *shapes[2] {
+                continue;
+            } else if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
                 matches.push([*first_shape, *next_shape, *next_next_shape])
             }
         }
-    };
+    }
 
     // Check vertically
-    for row in 1..=BOARD_SIZE-2 {
+    for row in 1..=BOARD_SIZE - 2 {
         for col in 1..=(BOARD_SIZE) {
             let first_shape = board.get(get_index(row, col)).unwrap();
             let next_shape = board.get(get_index(row + 1, col)).unwrap();
             let next_next_shape = board.get(get_index(row + 2, col)).unwrap();
 
-            let shapes = shape_q.get_many([*first_shape, *next_shape, *next_next_shape]).unwrap();
+            let shapes = shape_q
+                .get_many([*first_shape, *next_shape, *next_next_shape])
+                .unwrap();
 
             if *shapes[0] == Shape::Empty {
-                continue
-            } else if *shapes[0] == *shapes[1] &&  *shapes[0] == *shapes[2] {
+                continue;
+            } else if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
                 matches.push([*first_shape, *next_shape, *next_next_shape])
             }
         }
-    };
+    }
 
     return matches;
 

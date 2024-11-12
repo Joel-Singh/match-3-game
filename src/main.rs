@@ -5,12 +5,10 @@ mod board;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(
-            bevy::log::LogPlugin {
-                level: bevy::log::Level::DEBUG,
-                ..default()
-            }
-        ))
+        .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
+            level: bevy::log::Level::DEBUG,
+            ..default()
+        }))
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board::board)
         .add_systems(Startup, setup_camera)
