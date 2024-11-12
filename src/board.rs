@@ -27,7 +27,6 @@ pub(crate) fn board(app: &mut App) {
     .add_systems(FixedUpdate, swap_shapes_on_press)
     .add_systems(FixedUpdate, empty_horizontal_matches)
     .add_systems(FixedUpdate, update_shape_color);
-
 }
 
 fn spawn_board( mut commands: Commands
