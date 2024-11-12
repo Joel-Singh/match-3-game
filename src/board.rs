@@ -1,8 +1,9 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use rand::seq::SliceRandom;
 
 #[derive(Component)]
 struct Board();
+
+use shape::*;
 
 impl Board {
     fn get_index(row: usize, col: usize) -> usize {
@@ -13,25 +14,6 @@ impl Board {
         let row = index / BOARD_SIZE + 1;
         let col = (index % BOARD_SIZE) + 1;
         return (row, col)
-    }
-}
-
-#[derive(Component, Reflect, Clone, Copy, PartialEq)]
-enum Shape {
-    Red,
-    Blue,
-    Green,
-    Pink,
-}
-
-impl Shape {
-    fn color(&self) -> BackgroundColor {
-        match self {
-            Shape::Red => RED_500.into(),
-            Shape::Blue => BLUE_500.into(),
-            Shape::Green => GREEN_500.into(),
-            Shape::Pink => PINK_500.into(),
-        }
     }
 }
 
@@ -69,13 +51,6 @@ fn spawn_board(mut commands: Commands) {
         .insert(BOARD_POSITION);
 }
 
-fn get_random_shape() -> Shape {
-    let mut rng = rand::thread_rng();
-    let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
-    let random_color = *colors.choose(&mut rng).unwrap();
-
-    return random_color;
-}
 
 fn setup(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
     let board = board.get_single_mut().unwrap();
@@ -138,20 +113,6 @@ fn swap_shapes_on_press(
     }
 }
 
-fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
-    (
-        shape,
-        ButtonBundle {
-            style: Style {
-                width: Val::Auto,
-                height: Val::Auto,
-                ..default()
-            },
-            background_color: shape.color(),
-            ..default()
-        },
-    )
-}
 
 fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut commands: Commands) {
     for (shape, e) in shape.iter_mut() {
@@ -212,4 +173,51 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     }
 
     return matches;
+}
+
+mod shape  {
+    use bevy::{color::palettes::tailwind::*, prelude::*};
+    use rand::seq::SliceRandom;
+
+    #[derive(Component, Reflect, Clone, Copy, PartialEq)]
+    pub enum Shape {
+        Red,
+        Blue,
+        Green,
+        Pink,
+    }
+
+    impl Shape {
+        pub fn color(&self) -> BackgroundColor {
+            match self {
+                Shape::Red => RED_500.into(),
+                Shape::Blue => BLUE_500.into(),
+                Shape::Green => GREEN_500.into(),
+                Shape::Pink => PINK_500.into(),
+            }
+        }
+    }
+
+    pub fn get_random_shape() -> Shape {
+        let mut rng = rand::thread_rng();
+        let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
+        let random_color = *colors.choose(&mut rng).unwrap();
+
+        return random_color;
+    }
+
+    pub fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
+        (
+            shape,
+            ButtonBundle {
+                style: Style {
+                    width: Val::Auto,
+                    height: Val::Auto,
+                    ..default()
+                },
+                background_color: shape.color(),
+                ..default()
+            },
+        )
+    }
 }
