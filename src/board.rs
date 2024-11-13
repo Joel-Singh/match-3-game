@@ -5,6 +5,9 @@ struct Board();
 
 use shape::*;
 
+#[derive(Event, Default)]
+pub struct MatchMade();
+
 impl Board {
     fn get_index(row: usize, col: usize) -> usize {
         ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
@@ -24,8 +27,9 @@ const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 pub(crate) fn board(app: &mut App) {
     app.add_systems(Startup, (spawn_board, setup).chain())
         .add_systems(FixedUpdate, swap_shapes_on_press)
-        .add_systems(FixedUpdate, replace_matches)
-        .add_systems(FixedUpdate, update_shape_color);
+        .add_systems(FixedUpdate, handle_matches)
+        .add_systems(FixedUpdate, update_shape_color)
+        .add_event::<MatchMade>();
 }
 
 fn spawn_board(mut commands: Commands) {
@@ -120,20 +124,27 @@ fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut co
     }
 }
 
-fn replace_matches(
+fn handle_matches(
     shape_q: Query<&Shape>,
     board: Query<&Children, With<Board>>,
     mut commands: Commands,
+    mut match_made: EventWriter<MatchMade>
 ) {
     let board = board.get_single().unwrap();
     let matches = get_matches(board, shape_q);
 
     for board_match in matches {
+        replace_matches(board_match, &mut commands);
+        match_made.send(MatchMade::default());
+    }
+
+    fn replace_matches(board_match: [Entity; 3], commands: &mut Commands) {
         for entity in board_match {
             commands.entity(entity).insert(get_random_shape());
         }
     }
 }
+
 
 fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     let mut matches: Vec<[Entity; 3]> = vec![];
