@@ -46,6 +46,7 @@ fn spawn_board(mut commands: Commands) {
                     grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
                     grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
                     display: Display::Grid,
+                    margin: UiRect::all(Val::Auto),
                     ..default()
                 },
                 background_color: Srgba::new(1.0, 1.0, 1.0, 0.1).into(),
