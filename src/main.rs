@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
-use board::{board, Board};
+use board::{board, Board, MatchMade};
 use match_counter::{MatchCounter, match_counter};
 
 mod match_counter;
@@ -21,6 +21,7 @@ fn main() {
         .add_plugins(match_counter)
         .add_systems(Startup, setup_camera)
         .add_systems(PostStartup, layout_nodes)
+        .add_systems(FixedUpdate, increment_total_matches)
         .insert_resource(TotalMatches(0))
         .run();
 }
@@ -48,4 +49,13 @@ fn layout_nodes(
 
     container.add_child(board.single());
     container.add_child(match_counter.single());
+}
+
+fn increment_total_matches(
+    mut matches_made: EventReader<MatchMade>,
+    mut total_matches: ResMut<TotalMatches>
+) {
+    for _match_made in matches_made.read() {
+        total_matches.0 += 1;
+    }
 }
