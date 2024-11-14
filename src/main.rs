@@ -10,9 +10,10 @@ mod match_counter;
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
-#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
     Map,
+    #[default]
     Board,
 }
 
@@ -22,7 +23,7 @@ fn main() {
             level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .insert_state(GameState::Board)
+        .init_state::<GameState>()
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board)
         .add_plugins(match_counter)
