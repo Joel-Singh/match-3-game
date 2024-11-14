@@ -25,7 +25,7 @@ const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
-    app.add_systems(Startup, (spawn_board, setup).chain())
+    app.add_systems(Startup, (spawn_board, spawn_shapes_into_board).chain())
         .add_systems(FixedUpdate, swap_shapes_on_press)
         .add_systems(FixedUpdate, handle_matches)
         .add_systems(FixedUpdate, update_shape_color)
@@ -57,7 +57,7 @@ pub fn spawn_board(mut commands: Commands) {
 }
 
 
-fn setup(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
+fn spawn_shapes_into_board(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
     let board = board.get_single_mut().unwrap();
 
     for _ in 0..BOARD_TOTAL_SHAPES {
