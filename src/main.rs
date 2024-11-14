@@ -7,6 +7,9 @@ use match_counter::{MatchCounter, match_counter};
 
 mod match_counter;
 
+mod map;
+use map::map;
+
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
@@ -27,9 +30,11 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board)
         .add_plugins(match_counter)
+        .add_plugins(map)
         .add_systems(Startup, setup_camera)
         .add_systems(PostStartup, layout_nodes)
         .add_systems(FixedUpdate, increment_total_matches)
+        .add_systems(FixedUpdate, go_to_map_after_20_matches)
         .insert_resource(TotalMatches(0))
         .run();
 }
@@ -65,5 +70,14 @@ fn increment_total_matches(
 ) {
     for _match_made in matches_made.read() {
         total_matches.0 += 1;
+    }
+}
+
+fn go_to_map_after_20_matches(
+    total_matches: Res<TotalMatches>,
+    mut state: ResMut<NextState<GameState>>
+) {
+    if total_matches.0 >= 20 {
+        state.set(GameState::Map);
     }
 }
