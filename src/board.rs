@@ -1,7 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 #[derive(Component)]
-struct Board();
+pub struct Board();
 
 use shape::*;
 
@@ -32,7 +32,7 @@ pub(crate) fn board(app: &mut App) {
         .add_event::<MatchMade>();
 }
 
-fn spawn_board(mut commands: Commands) {
+pub fn spawn_board(mut commands: Commands) {
     commands
         .spawn((
             Board(),
