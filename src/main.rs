@@ -19,7 +19,6 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board)
         .add_systems(Startup, setup_camera)
-        .add_systems(FixedUpdate, debug_matches)
         .add_systems(FixedUpdate, update_match_counter)
         .add_systems(Startup, spawn_match_counter)
         .add_systems(PostStartup, layout_nodes)
@@ -51,12 +50,6 @@ fn layout_nodes(
 
     container.add_child(board.single());
     container.add_child(match_counter.single());
-}
-
-fn debug_matches(mut matches_made: EventReader<MatchMade>) {
-    for _match_made in matches_made.read() {
-        println!("Match made");
-    }
 }
 
 fn spawn_match_counter(mut commands: Commands) {
