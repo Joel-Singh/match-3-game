@@ -7,6 +7,9 @@ use board::{board, Board, MatchMade};
 #[derive(Component)]
 struct MatchCounter;
 
+#[derive(Resource)]
+struct TotalMatches(u32);
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
@@ -17,8 +20,11 @@ fn main() {
         .add_plugins(board)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, debug_matches)
+        .add_systems(FixedUpdate, update_match_counter)
         .add_systems(Startup, spawn_match_counter)
         .add_systems(PostStartup, layout_nodes)
+        .add_systems(FixedUpdate, increment_total_matches)
+        .insert_resource(TotalMatches(0))
         .run();
 }
 
@@ -65,4 +71,21 @@ fn spawn_match_counter(mut commands: Commands) {
             }
         )
     ));
+}
+
+fn update_match_counter(
+    total_matches: Res<TotalMatches>,
+    mut match_counter_text: Query<&mut Text, With<MatchCounter>>
+) {
+    let mut text = match_counter_text.single_mut();
+    text.sections[0].value = total_matches.0.to_string();
+}
+
+fn increment_total_matches(
+    mut matches_made: EventReader<MatchMade>,
+    mut total_matches: ResMut<TotalMatches>
+) {
+    for _match_made in matches_made.read() {
+        total_matches.0 += 1;
+    }
 }
