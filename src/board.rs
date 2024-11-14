@@ -1,7 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 #[derive(Component)]
-pub struct Board();
+pub struct Board;
 
 use shape::*;
 
@@ -9,9 +9,6 @@ use crate::GameState;
 
 #[derive(Event, Default)]
 pub struct MatchMade();
-
-#[derive(Component)]
-struct MatchCounter;
 
 impl Board {
     fn get_index(row: usize, col: usize) -> usize {
@@ -47,7 +44,7 @@ pub(crate) fn board(app: &mut App) {
 pub fn spawn_board(mut commands: Commands) {
     commands
         .spawn((
-            Board(),
+            Board,
             NodeBundle {
                 style: Style {
                     width: Val::Px(400.),
