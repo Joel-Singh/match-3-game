@@ -5,6 +5,8 @@ pub struct Board();
 
 use shape::*;
 
+use crate::GameState;
+
 #[derive(Event, Default)]
 pub struct MatchMade();
 
@@ -28,11 +30,18 @@ const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
-    app.add_systems(Startup, (spawn_board, spawn_shapes_into_board).chain())
-        .add_systems(FixedUpdate, swap_shapes_on_press)
-        .add_systems(FixedUpdate, handle_matches)
-        .add_systems(FixedUpdate, update_shape_color)
-        .add_event::<MatchMade>();
+    app
+        .add_event::<MatchMade>()
+        .add_systems(OnEnter(GameState::Board), (
+            spawn_board,
+            spawn_shapes_into_board
+        ).chain())
+        .add_systems(FixedUpdate, (
+            swap_shapes_on_press,
+            handle_matches,
+            update_shape_color
+        ).run_if(in_state(GameState::Board)))
+        .add_systems(OnExit(GameState::Board), cleanup);
 }
 
 pub fn spawn_board(mut commands: Commands) {
@@ -188,6 +197,13 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     }
 
     return matches;
+}
+
+fn cleanup(
+    mut commands: Commands,
+    board: Query<Entity, With<Board>>,
+) {
+    commands.entity(board.single()).despawn_recursive();
 }
 
 mod shape  {
