@@ -1,14 +1,14 @@
-use bevy::{color::palettes::css::WHITE, prelude::*};
+use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
-use board::{board, Board, MatchMade};
+use board::{board, Board};
+use match_counter::{MatchCounter, match_counter};
 
-#[derive(Component)]
-struct MatchCounter;
+mod match_counter;
 
 #[derive(Resource)]
-struct TotalMatches(u32);
+pub struct TotalMatches(u32);
 
 fn main() {
     App::new()
@@ -18,11 +18,9 @@ fn main() {
         }))
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board)
+        .add_plugins(match_counter)
         .add_systems(Startup, setup_camera)
-        .add_systems(FixedUpdate, update_match_counter)
-        .add_systems(Startup, spawn_match_counter)
         .add_systems(PostStartup, layout_nodes)
-        .add_systems(FixedUpdate, increment_total_matches)
         .insert_resource(TotalMatches(0))
         .run();
 }
@@ -50,35 +48,4 @@ fn layout_nodes(
 
     container.add_child(board.single());
     container.add_child(match_counter.single());
-}
-
-fn spawn_match_counter(mut commands: Commands) {
-    commands.spawn((
-        MatchCounter,
-        TextBundle::from_section(
-            "0",
-            TextStyle {
-                font_size: 100.0,
-                color: WHITE.into(),
-                ..default()
-            }
-        )
-    ));
-}
-
-fn update_match_counter(
-    total_matches: Res<TotalMatches>,
-    mut match_counter_text: Query<&mut Text, With<MatchCounter>>
-) {
-    let mut text = match_counter_text.single_mut();
-    text.sections[0].value = total_matches.0.to_string();
-}
-
-fn increment_total_matches(
-    mut matches_made: EventReader<MatchMade>,
-    mut total_matches: ResMut<TotalMatches>
-) {
-    for _match_made in matches_made.read() {
-        total_matches.0 += 1;
-    }
 }

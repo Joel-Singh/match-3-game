@@ -8,6 +8,9 @@ use shape::*;
 #[derive(Event, Default)]
 pub struct MatchMade();
 
+#[derive(Component)]
+struct MatchCounter;
+
 impl Board {
     fn get_index(row: usize, col: usize) -> usize {
         ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
