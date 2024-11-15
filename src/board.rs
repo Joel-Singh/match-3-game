@@ -43,7 +43,7 @@ pub(crate) fn board(app: &mut App) {
             match_counter::update
         ).run_if(in_state(GameState::Board)))
         .add_systems(OnExit(GameState::Board), (
-            cleanup, match_counter::cleanup
+            delete_entities, match_counter::delete_entities
         ));
 }
 
@@ -223,7 +223,7 @@ fn get_matches(board: &Children, shape_q: Query<&Shape>) -> Vec<[Entity; 3]> {
     return matches;
 }
 
-fn cleanup(
+fn delete_entities(
     mut commands: Commands,
     board: Query<Entity, With<Board>>,
 ) {
@@ -308,7 +308,7 @@ mod match_counter {
         text.sections[0].value = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
     }
 
-    pub fn cleanup(
+    pub fn delete_entities(
         mut commands: Commands, match_counter: Query<Entity, With<MatchCounter>>
     ) {
         commands.entity(match_counter.single()).despawn_recursive();
