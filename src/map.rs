@@ -35,9 +35,9 @@ fn setup(mut commands: Commands) {
         },
         ..default()
     })).with_children(|parent| {
-        parent.spawn(get_board_button(BoardButton::First));
-        parent.spawn(get_board_button(BoardButton::Second));
         parent.spawn(get_board_button(BoardButton::Third));
+        parent.spawn(get_board_button(BoardButton::Second));
+        parent.spawn(get_board_button(BoardButton::First));
     });
 }
 
