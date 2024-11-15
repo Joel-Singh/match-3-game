@@ -14,8 +14,8 @@ pub struct NeededMatches(u32);
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
-    Map,
     #[default]
+    Map,
     Board,
 }
 
