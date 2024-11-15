@@ -17,7 +17,7 @@ pub fn map(app: &mut App) {
         .add_systems(OnEnter(GameState::Map), setup)
         .add_systems(FixedUpdate,
             (
-                go_to_area_on_click,
+                go_to_board_on_click,
             ).run_if(in_state(GameState::Map))
         )
         .add_systems(OnExit(GameState::Map), cleanup);
@@ -35,9 +35,9 @@ fn setup(mut commands: Commands) {
         },
         ..default()
     })).with_children(|parent| {
-        parent.spawn(get_area_button(BoardButton::First));
-        parent.spawn(get_area_button(BoardButton::Second));
-        parent.spawn(get_area_button(BoardButton::Third));
+        parent.spawn(get_board_button(BoardButton::First));
+        parent.spawn(get_board_button(BoardButton::Second));
+        parent.spawn(get_board_button(BoardButton::Third));
     });
 }
 
@@ -45,7 +45,7 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn get_area_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
+fn get_board_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
     (ButtonBundle {
         style: Style {
             width: Val::Px(50.),
@@ -60,7 +60,7 @@ fn get_area_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
     )
 }
 
-fn go_to_area_on_click(
+fn go_to_board_on_click(
     mut state: ResMut<NextState<GameState>>,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<BoardButton>)>,
 ) {
