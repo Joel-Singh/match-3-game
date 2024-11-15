@@ -1,5 +1,4 @@
-use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy::prelude::*; use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
 use board::{board, MatchMade};
@@ -29,7 +28,7 @@ fn main() {
         .add_plugins(map)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
-        // .add_systems(FixedUpdate, go_to_map_after_20_matches)
+        .add_systems(FixedUpdate, go_to_map_after_30_matches)
         .insert_resource(TotalMatches(0))
         .run();
 }
@@ -47,11 +46,11 @@ fn increment_total_matches(
     }
 }
 
-// fn go_to_map_after_20_matches(
-//     total_matches: Res<TotalMatches>,
-//     mut state: ResMut<NextState<GameState>>
-// ) {
-//     if total_matches.0 >= 20 {
-//         state.set(GameState::Map);
-//     }
-// }
+fn go_to_map_after_30_matches(
+    total_matches: Res<TotalMatches>,
+    mut state: ResMut<NextState<GameState>>
+) {
+    if total_matches.0 >= 30 {
+        state.set(GameState::Map);
+    }
+}
