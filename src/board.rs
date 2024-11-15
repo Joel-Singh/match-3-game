@@ -6,7 +6,7 @@ pub struct Board;
 use match_counter::MatchCounter;
 use shape::*;
 
-use crate::GameState;
+use crate::{GameState, TotalMatches};
 
 #[derive(Event, Default)]
 pub struct MatchMade();
@@ -43,7 +43,9 @@ pub(crate) fn board(app: &mut App) {
             match_counter::update
         ).run_if(in_state(GameState::Board)))
         .add_systems(OnExit(GameState::Board), (
-            delete_entities, match_counter::delete_entities
+            delete_entities,
+            match_counter::delete_entities,
+            reset_total_matches
         ));
 }
 
@@ -229,6 +231,11 @@ fn delete_entities(
 ) {
     commands.entity(board.single()).despawn_recursive();
 }
+
+fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
+    total_matches.0 = 0;
+}
+
 
 mod shape  {
     use bevy::{color::palettes::tailwind::*, prelude::*};
