@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::GRAY_50, prelude::*};
 
 use crate::GameState;
 
@@ -21,6 +21,7 @@ fn setup(mut commands: Commands) {
             margin: UiRect::all(Val::Auto),
             ..default()
         },
+        background_color: GRAY_50.into(),
         ..default()
     })).with_children(|parent| {
         parent.spawn(ButtonBundle {
