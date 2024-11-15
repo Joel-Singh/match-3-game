@@ -280,7 +280,7 @@ mod shape  {
 mod match_counter {
     use bevy::{color::palettes::css::WHITE, prelude::*};
 
-    use crate::TotalMatches;
+    use crate::{NeededMatches, TotalMatches};
 
     #[derive(Component)]
     pub struct MatchCounter;
@@ -301,10 +301,11 @@ mod match_counter {
 
     pub fn update(
         total_matches: Res<TotalMatches>,
-        mut match_counter_text: Query<&mut Text, With<MatchCounter>>
+        mut match_counter_text: Query<&mut Text, With<MatchCounter>>,
+        needed_matches: Res<NeededMatches>
     ) {
         let mut text = match_counter_text.single_mut();
-        text.sections[0].value = total_matches.0.to_string();
+        text.sections[0].value = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
     }
 
     pub fn cleanup(
