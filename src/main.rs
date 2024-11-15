@@ -9,6 +9,9 @@ use map::map;
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
+#[derive(Resource)]
+pub struct NeededMatches(u32);
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
     Map,
@@ -28,8 +31,9 @@ fn main() {
         .add_plugins(map)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
-        .add_systems(FixedUpdate, go_to_map_after_30_matches)
+        .add_systems(FixedUpdate, go_to_map_after_enough_matches)
         .insert_resource(TotalMatches(0))
+        .insert_resource(NeededMatches(30))
         .run();
 }
 
@@ -46,11 +50,12 @@ fn increment_total_matches(
     }
 }
 
-fn go_to_map_after_30_matches(
+fn go_to_map_after_enough_matches(
     total_matches: Res<TotalMatches>,
-    mut state: ResMut<NextState<GameState>>
+    needed_matches: Res<NeededMatches>,
+    mut state: ResMut<NextState<GameState>>,
 ) {
-    if total_matches.0 >= 30 {
+    if total_matches.0 >= needed_matches.0 {
         state.set(GameState::Map);
     }
 }
