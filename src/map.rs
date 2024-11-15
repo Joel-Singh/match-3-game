@@ -6,7 +6,7 @@ use crate::GameState;
 pub struct Map;
 
 #[derive(Component)]
-enum Areas {
+enum BoardButton {
     First,
     Second,
     Third,
@@ -15,6 +15,11 @@ enum Areas {
 pub fn map(app: &mut App) {
     app
         .add_systems(OnEnter(GameState::Map), setup)
+        .add_systems(FixedUpdate,
+            (
+                go_to_area_on_click,
+            ).run_if(in_state(GameState::Map))
+        )
         .add_systems(OnExit(GameState::Map), cleanup);
 }
 
@@ -30,9 +35,9 @@ fn setup(mut commands: Commands) {
         },
         ..default()
     })).with_children(|parent| {
-        parent.spawn(get_area_button(Areas::First));
-        parent.spawn(get_area_button(Areas::Second));
-        parent.spawn(get_area_button(Areas::Third));
+        parent.spawn(get_area_button(BoardButton::First));
+        parent.spawn(get_area_button(BoardButton::Second));
+        parent.spawn(get_area_button(BoardButton::Third));
     });
 }
 
@@ -40,7 +45,7 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn get_area_button(area: Areas) -> (ButtonBundle, Areas) {
+fn get_area_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
     (ButtonBundle {
         style: Style {
             width: Val::Px(50.),
@@ -54,3 +59,15 @@ fn get_area_button(area: Areas) -> (ButtonBundle, Areas) {
     area
     )
 }
+
+fn go_to_area_on_click(
+    mut state: ResMut<NextState<GameState>>,
+    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<BoardButton>)>,
+) {
+    for interaction in &mut interaction_query {
+        if *interaction == Interaction::Pressed {
+            state.set(GameState::Board);
+        }
+    }
+}
+
