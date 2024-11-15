@@ -1,11 +1,11 @@
 use bevy::{color::palettes::tailwind::GRAY_50, prelude::*};
 
-use crate::GameState;
+use crate::{GameState, NeededMatches};
 
 #[derive(Component)]
 pub struct Map;
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 enum BoardButton {
     First,
     Second,
@@ -62,11 +62,21 @@ fn get_board_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
 
 fn go_to_board_on_click(
     mut state: ResMut<NextState<GameState>>,
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<BoardButton>)>,
+    mut needed_matches: ResMut<NeededMatches>,
+    mut interaction_query: Query<(&Interaction, &BoardButton), Changed<Interaction>>,
 ) {
-    for interaction in &mut interaction_query {
+    for (interaction, board_button) in &mut interaction_query {
         if *interaction == Interaction::Pressed {
+            needed_matches.0 = get_needed_matches(*board_button);
             state.set(GameState::Board);
+        }
+    }
+
+    fn get_needed_matches(board_button: BoardButton) -> u32 {
+        match board_button {
+            BoardButton::First => 30,
+            BoardButton::Second => 31,
+            BoardButton::Third => 32,
         }
     }
 }
