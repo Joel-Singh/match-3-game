@@ -128,7 +128,7 @@ fn swap_shapes_on_press(
                 });
             },
             Some(last_pressed_button_e) => {
-                let mut board_children = board_children_q.get_single_mut().unwrap();
+                let mut board_children = board_children_q.single_mut();
                 let last_pressed_button_i = board_children
                     .iter()
                     .position(|e| *e == last_pressed_button_e)
