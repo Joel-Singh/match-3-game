@@ -11,6 +11,9 @@ use crate::{GameState, TotalMatches};
 #[derive(Event, Default)]
 pub struct MatchMade();
 
+#[derive(Event)]
+pub struct SwapShapes(Entity, Entity);
+
 impl Board {
     fn get_index(row: usize, col: usize) -> usize {
         ((((row - 1) * BOARD_SIZE) + col) - 1) as usize
@@ -28,7 +31,8 @@ const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
-    app.add_event::<MatchMade>()
+    app.add_event::<SwapShapes>()
+        .add_event::<MatchMade>()
         .add_systems(
             OnEnter(GameState::Board),
             (
@@ -42,7 +46,7 @@ pub(crate) fn board(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                swap_shapes_on_press,
+                (write_swap_shape_event, handle_swap_shape_events).chain(),
                 (handle_bomb_matches, handle_regular_matches).chain(),
                 update_shape_color,
                 match_counter::update,
@@ -114,14 +118,14 @@ fn spawn_shapes_into_board(mut board: Query<Entity, With<Board>>, mut commands: 
     }
 }
 
-fn swap_shapes_on_press(
+fn write_swap_shape_event(
     mut interaction_query: Query<
         (&Interaction, Entity),
         (Changed<Interaction>, With<Button>, With<Shape>),
     >,
-    mut board_children_q: Query<&mut Children, With<Board>>,
     mut last_pressed_button: Local<Option<Entity>>,
     mut commands: Commands,
+    mut swap_shapes_event: EventWriter<SwapShapes>,
 ) {
     for (interaction, just_pressed_button) in &mut interaction_query {
         if *interaction != Interaction::Pressed {
@@ -137,14 +141,7 @@ fn swap_shapes_on_press(
                 });
             }
             Some(last_pressed_button_e) => {
-                let mut board_children = board_children_q.single_mut();
-                let last_pressed_button_i = get_index(&board_children, last_pressed_button_e);
-                let just_pressed_button_i = get_index(&board_children, just_pressed_button);
-
-                let is_next_to = is_next_to(last_pressed_button_i, just_pressed_button_i);
-                if is_next_to {
-                    board_children.swap(last_pressed_button_i, just_pressed_button_i);
-                }
+                swap_shapes_event.send(SwapShapes(last_pressed_button_e, just_pressed_button));
 
                 commands
                     .entity(last_pressed_button_e)
@@ -153,23 +150,39 @@ fn swap_shapes_on_press(
                 *last_pressed_button = None;
             }
         }
+    }
+}
 
-        fn get_index(board_children: &Children, last_pressed_button_e: Entity) -> usize {
-            board_children
-                .iter()
-                .position(|e| *e == last_pressed_button_e)
-                .unwrap()
+fn handle_swap_shape_events(
+    mut board_children: Query<&mut Children, With<Board>>,
+    mut swap_shapes: EventReader<SwapShapes>,
+) {
+    for SwapShapes(button1, button2) in swap_shapes.read() {
+        let mut board_children = board_children.single_mut();
+        let button1 = get_index(&board_children, *button1);
+        let button2 = get_index(&board_children, *button2);
+
+        let is_next_to = is_next_to(button1, button2);
+        if is_next_to {
+            board_children.swap(button1, button2);
         }
+    }
 
-        fn is_next_to(last_pressed_button_i: usize, just_pressed_button_i: usize) -> bool {
-            let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
-            let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
-            let delta_x = (x_1 as i32 - x_2 as i32).abs();
-            let delta_y = (y_1 as i32 - y_2 as i32).abs();
+    fn get_index(board_children: &Children, last_pressed_button_e: Entity) -> usize {
+        board_children
+            .iter()
+            .position(|e| *e == last_pressed_button_e)
+            .unwrap()
+    }
 
-            let is_next_to = (delta_x + delta_y) == 1;
-            is_next_to
-        }
+    fn is_next_to(last_pressed_button_i: usize, just_pressed_button_i: usize) -> bool {
+        let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
+        let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
+        let delta_x = (x_1 as i32 - x_2 as i32).abs();
+        let delta_y = (y_1 as i32 - y_2 as i32).abs();
+
+        let is_next_to = (delta_x + delta_y) == 1;
+        is_next_to
     }
 }
 
