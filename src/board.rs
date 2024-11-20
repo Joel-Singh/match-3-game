@@ -19,7 +19,7 @@ impl Board {
     fn get_row_col(index: usize) -> (usize, usize) {
         let row = index / BOARD_SIZE + 1;
         let col = (index % BOARD_SIZE) + 1;
-        return (row, col)
+        return (row, col);
     }
 }
 
@@ -28,31 +28,41 @@ const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
-    app
-        .add_event::<MatchMade>()
-        .add_systems(OnEnter(GameState::Board), (
-            spawn_board,
-            match_counter::spawn,
-            spawn_shapes_into_board,
-            layout_nodes
-        ).chain())
-        .add_systems(FixedUpdate, (
-            swap_shapes_on_press,
-            (handle_bomb_matches, handle_regular_matches).chain(),
-            update_shape_color,
-            match_counter::update
-        ).run_if(in_state(GameState::Board)))
-        .add_systems(OnExit(GameState::Board), (
-            delete_entities,
-            match_counter::delete_entities,
-            reset_total_matches
-        ));
+    app.add_event::<MatchMade>()
+        .add_systems(
+            OnEnter(GameState::Board),
+            (
+                spawn_board,
+                match_counter::spawn,
+                spawn_shapes_into_board,
+                layout_nodes,
+            )
+                .chain(),
+        )
+        .add_systems(
+            FixedUpdate,
+            (
+                swap_shapes_on_press,
+                (handle_bomb_matches, handle_regular_matches).chain(),
+                update_shape_color,
+                match_counter::update,
+            )
+                .run_if(in_state(GameState::Board)),
+        )
+        .add_systems(
+            OnExit(GameState::Board),
+            (
+                delete_entities,
+                match_counter::delete_entities,
+                reset_total_matches,
+            ),
+        );
 }
 
 fn layout_nodes(
     board: Query<Entity, With<Board>>,
     match_counter: Query<Entity, With<MatchCounter>>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     let mut container = commands.spawn(NodeBundle {
         style: Style {
@@ -94,7 +104,6 @@ pub fn spawn_board(mut commands: Commands) {
         .insert(BOARD_POSITION);
 }
 
-
 fn spawn_shapes_into_board(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
     let board = board.get_single_mut().unwrap();
 
@@ -112,7 +121,7 @@ fn swap_shapes_on_press(
     >,
     mut board_children_q: Query<&mut Children, With<Board>>,
     mut last_pressed_button: Local<Option<Entity>>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     for (interaction, just_pressed_button) in &mut interaction_query {
         if *interaction != Interaction::Pressed {
@@ -126,7 +135,7 @@ fn swap_shapes_on_press(
                     color: PINK_950.into(),
                     ..default()
                 });
-            },
+            }
             Some(last_pressed_button_e) => {
                 let mut board_children = board_children_q.single_mut();
                 let last_pressed_button_i = board_children
@@ -140,22 +149,23 @@ fn swap_shapes_on_press(
 
                 let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
                 let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
-                let delta_x = ( x_1 as i32 - x_2 as i32).abs();
-                let delta_y = ( y_1 as i32 - y_2 as i32).abs();
+                let delta_x = (x_1 as i32 - x_2 as i32).abs();
+                let delta_y = (y_1 as i32 - y_2 as i32).abs();
 
                 let is_next_to = (delta_x + delta_y) == 1;
                 if is_next_to {
                     board_children.swap(last_pressed_button_i, just_pressed_button_i);
                 }
 
-                commands.entity(last_pressed_button_e).insert(Outline::default());
+                commands
+                    .entity(last_pressed_button_e)
+                    .insert(Outline::default());
 
                 *last_pressed_button = None;
             }
         }
     }
 }
-
 
 fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut commands: Commands) {
     for (shape, e) in shape.iter_mut() {
@@ -167,7 +177,7 @@ fn handle_bomb_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
     mut commands: Commands,
-    mut match_made: EventWriter<MatchMade>
+    mut match_made: EventWriter<MatchMade>,
 ) {
     let board = board.single();
     let bomb_matches = get_bomb_matches(board, &shape_q);
@@ -185,7 +195,7 @@ fn handle_regular_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
     mut commands: Commands,
-    mut match_made: EventWriter<MatchMade>
+    mut match_made: EventWriter<MatchMade>,
 ) {
     let board = board.single();
     let matches = get_matches(board, &shape_q);
@@ -198,7 +208,6 @@ fn handle_regular_matches(
         match_made.send(MatchMade::default());
     }
 }
-
 
 struct BombMatch {
     center: Entity,
@@ -221,7 +230,7 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch>
                 return false;
             }
         }
-        return true
+        return true;
     };
 
     let mut matches: Vec<BombMatch> = vec![];
@@ -255,7 +264,7 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch>
         }
     }
 
-    matches 
+    matches
 }
 
 fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
@@ -298,11 +307,7 @@ fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
     return matches;
 }
 
-
-fn delete_entities(
-    mut commands: Commands,
-    board: Query<Entity, With<Board>>,
-) {
+fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
     commands.entity(board.single()).despawn_recursive();
 }
 
@@ -310,8 +315,7 @@ fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
     total_matches.0 = 0;
 }
 
-
-mod shape  {
+mod shape {
     use bevy::{color::palettes::tailwind::*, prelude::*};
     use rand::seq::SliceRandom;
 
@@ -377,22 +381,23 @@ mod match_counter {
                     font_size: 100.0,
                     color: WHITE.into(),
                     ..default()
-                }
-            )
+                },
+            ),
         ));
     }
 
     pub fn update(
         total_matches: Res<TotalMatches>,
         mut match_counter_text: Query<&mut Text, With<MatchCounter>>,
-        needed_matches: Res<NeededMatches>
+        needed_matches: Res<NeededMatches>,
     ) {
         let mut text = match_counter_text.single_mut();
         text.sections[0].value = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
     }
 
     pub fn delete_entities(
-        mut commands: Commands, match_counter: Query<Entity, With<MatchCounter>>
+        mut commands: Commands,
+        match_counter: Query<Entity, With<MatchCounter>>,
     ) {
         commands.entity(match_counter.single()).despawn_recursive();
     }

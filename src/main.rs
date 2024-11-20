@@ -1,4 +1,5 @@
-use bevy::prelude::*; use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
 use board::{board, MatchMade};
@@ -43,7 +44,7 @@ fn setup_camera(mut commands: Commands) {
 
 fn increment_total_matches(
     mut matches_made: EventReader<MatchMade>,
-    mut total_matches: ResMut<TotalMatches>
+    mut total_matches: ResMut<TotalMatches>,
 ) {
     for _match_made in matches_made.read() {
         total_matches.0 += 1;
