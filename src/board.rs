@@ -138,21 +138,10 @@ fn swap_shapes_on_press(
             }
             Some(last_pressed_button_e) => {
                 let mut board_children = board_children_q.single_mut();
-                let last_pressed_button_i = board_children
-                    .iter()
-                    .position(|e| *e == last_pressed_button_e)
-                    .unwrap();
-                let just_pressed_button_i = board_children
-                    .iter()
-                    .position(|e| *e == just_pressed_button)
-                    .unwrap();
+                let last_pressed_button_i = get_index(&board_children, last_pressed_button_e);
+                let just_pressed_button_i = get_index(&board_children, just_pressed_button);
 
-                let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
-                let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
-                let delta_x = (x_1 as i32 - x_2 as i32).abs();
-                let delta_y = (y_1 as i32 - y_2 as i32).abs();
-
-                let is_next_to = (delta_x + delta_y) == 1;
+                let is_next_to = is_next_to(last_pressed_button_i, just_pressed_button_i);
                 if is_next_to {
                     board_children.swap(last_pressed_button_i, just_pressed_button_i);
                 }
@@ -163,6 +152,23 @@ fn swap_shapes_on_press(
 
                 *last_pressed_button = None;
             }
+        }
+
+        fn get_index(board_children: &Children, last_pressed_button_e: Entity) -> usize {
+            board_children
+                .iter()
+                .position(|e| *e == last_pressed_button_e)
+                .unwrap()
+        }
+
+        fn is_next_to(last_pressed_button_i: usize, just_pressed_button_i: usize) -> bool {
+            let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
+            let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
+            let delta_x = (x_1 as i32 - x_2 as i32).abs();
+            let delta_y = (y_1 as i32 - y_2 as i32).abs();
+
+            let is_next_to = (delta_x + delta_y) == 1;
+            is_next_to
         }
     }
 }
