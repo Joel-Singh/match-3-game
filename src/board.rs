@@ -38,7 +38,7 @@ pub(crate) fn board(app: &mut App) {
         ).chain())
         .add_systems(FixedUpdate, (
             swap_shapes_on_press,
-            handle_matches,
+            (handle_bomb_matches, handle_regular_matches).chain(),
             update_shape_color,
             match_counter::update
         ).run_if(in_state(GameState::Board)))
@@ -163,56 +163,55 @@ fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut co
     }
 }
 
-fn handle_matches(
-    shape_q: Query<&Shape>,
+fn handle_bomb_matches(
     board: Query<&Children, With<Board>>,
+    shape_q: Query<&Shape>,
     mut commands: Commands,
     mut match_made: EventWriter<MatchMade>
 ) {
-    let board = board.get_single().unwrap();
+    let board = board.single();
+    let bomb_matches = get_bomb_matches(board, &shape_q);
 
-    handle_bomb_matches(board, &shape_q, &mut commands, &mut match_made);
-    handle_regular_matches(board, shape_q, commands, match_made);
-
-    fn handle_bomb_matches(board: &Children, shape_q: &Query<&Shape>, commands: &mut Commands, match_made: &mut EventWriter<MatchMade>) {
-        let bomb_matches = get_bomb_matches(board, shape_q);
-
-        for bomb_match in bomb_matches {
-            for shape in bomb_match.matched_shapes {
-                commands.entity(shape).insert(get_random_shape());
-            }
-            commands.entity(bomb_match.center).insert(Shape::Bomb);
-            match_made.send(MatchMade::default());
+    for bomb_match in bomb_matches {
+        for shape in bomb_match.matched_shapes {
+            commands.entity(shape).insert(get_random_shape());
         }
+        commands.entity(bomb_match.center).insert(Shape::Bomb);
+        match_made.send(MatchMade::default());
     }
+}
 
-    fn handle_regular_matches(board: &Children, shape_q: Query<&Shape>, mut commands: Commands, mut match_made: EventWriter<MatchMade>) {
-        let matches = get_matches(board, &shape_q);
+fn handle_regular_matches(
+    board: Query<&Children, With<Board>>,
+    shape_q: Query<&Shape>,
+    mut commands: Commands,
+    mut match_made: EventWriter<MatchMade>
+) {
+    let board = board.single();
+    let matches = get_matches(board, &shape_q);
 
-        for board_match in matches {
-            let commands: &mut Commands = &mut commands;
-            for entity in board_match {
-                commands.entity(entity).insert(get_random_shape());
-            }
-            match_made.send(MatchMade::default());
+    for board_match in matches {
+        let commands: &mut Commands = &mut commands;
+        for entity in board_match {
+            commands.entity(entity).insert(get_random_shape());
         }
+        match_made.send(MatchMade::default());
     }
 }
 
 
 struct BombMatch {
     center: Entity,
-    // Doesn't include the center
     matched_shapes: Vec<Entity>,
 }
 
 fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch> {
-    let get = |row: usize, col: usize| {
-        if row == 0 || row > BOARD_SIZE || col == 0 || col > BOARD_SIZE {
+    let get = |row: i32, col: i32| {
+        if row < 1 || row > BOARD_SIZE as i32 || col < 1 || col > BOARD_SIZE as i32 {
             return None;
         }
 
-        return board.get(Board::get_index(row, col));
+        return board.get(Board::get_index(row as usize, col as usize));
     };
 
     let all_the_same_color = |shapes: &[&Shape]| {
@@ -228,26 +227,29 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch>
     let mut matches: Vec<BombMatch> = vec![];
     for row in 1..=BOARD_SIZE {
         for col in 1..=BOARD_SIZE {
+            let row = row as i32;
+            let col = col as i32;
+
             let neighbors = [
                 get(row, col),
-                get(row + 1, col),
-                get(row - 1, col),
-                get(row, col + 1),
                 get(row, col - 1),
+                get(row, col - 2),
+                get(row + 1, col),
+                get(row + 2, col),
             ];
 
             if neighbors.iter().any(|s| s.is_none()) {
                 continue;
             }
 
-            let [center, up, down, right, left] = neighbors.map(|s| s.unwrap());
+            let neighbors = neighbors.map(|s| *s.unwrap());
 
-            let shapes = shape_q.many([*center, *up, *down, *right, *left]);
+            let shapes = shape_q.many(neighbors);
 
             if all_the_same_color(&shapes[..]) {
                 matches.push(BombMatch {
-                    center: *center,
-                    matched_shapes: vec![*up, *down, *right, *left],
+                    center: neighbors[0],
+                    matched_shapes: neighbors[1..].to_vec(), // Exclude the center
                 });
             }
         }
