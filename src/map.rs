@@ -78,9 +78,9 @@ fn go_to_board_on_click(
 
     fn get_needed_matches(board_button: BoardButton) -> u32 {
         match board_button {
-            BoardButton::First => 30,
-            BoardButton::Second => 31,
-            BoardButton::Third => 32,
+            BoardButton::First => 50,
+            BoardButton::Second => 51,
+            BoardButton::Third => 52,
         }
     }
 }
