@@ -57,8 +57,7 @@ pub(crate) fn board(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                (write_swap_shape_event, handle_swap_shape_events).chain(),
-                (handle_bomb_matches, handle_regular_matches).chain(),
+                (write_swap_shape_event, handle_swap_shape_events, handle_bomb_matches, handle_regular_matches).chain(),
                 update_shape_color,
                 match_counter::update,
             )
