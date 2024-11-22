@@ -165,16 +165,67 @@ fn write_swap_shape_event(
 
 fn handle_swap_shape_events(
     mut board_children: Query<&mut Children, With<Board>>,
+    shapes: Query<&Shape>,
     mut swap_shapes: EventReader<SwapShapes>,
+    mut commands: Commands,
 ) {
     for SwapShapes(button1, button2) in swap_shapes.read() {
         let mut board_children = board_children.single_mut();
-        let button1 = get_index(&board_children, *button1);
-        let button2 = get_index(&board_children, *button2);
 
-        let is_next_to = is_next_to(button1, button2);
+        let button1_i = get_index(&board_children, *button1);
+        let button2_i = get_index(&board_children, *button2);
+
+        let is_next_to = is_next_to(button1_i, button2_i);
         if is_next_to {
-            board_children.swap(button1, button2);
+            board_children.swap(button1_i, button2_i);
+        }
+
+        explode_if_bomb((*shapes.get(*button1).unwrap(), *button1), &board_children, &mut commands);
+        explode_if_bomb((*shapes.get(*button2).unwrap(), *button2), &board_children, &mut commands);
+
+        fn explode_if_bomb(shape: (Shape, Entity), board_children: &Children,  commands: &mut Commands) {
+            let (maybe_bomb, shape_e) = shape;
+            if maybe_bomb == Shape::Bomb {
+                explode_surrounding_cells(&shape_e, &board_children, commands);
+                randomize_shape(&shape_e, commands);
+            }
+        }
+
+        fn explode_surrounding_cells(
+            bomb: &Entity,
+            board_children: &Children,
+            commands: &mut Commands,
+        ) {
+            let board_index = get_index(board_children, *bomb);
+            let (row, col) = Board::get_row_col(board_index);
+
+            let surrounding_shapes = get_surrounding_shapes(board_children, row, col);
+            for shape in surrounding_shapes {
+                randomize_shape(&shape, commands)
+            }
+        }
+
+        fn randomize_shape(shape: &Entity, commands: &mut Commands) {
+            commands.entity(*shape).insert(get_random_shape());
+        }
+
+        fn get_surrounding_shapes(board_children: &Children, row: usize, col: usize) -> Vec<Entity> {
+            let surrounding_shapes = [
+                Board::get_entity(row - 1, col - 1, &board_children),
+                Board::get_entity(row - 1, col, &board_children),
+                Board::get_entity(row - 1, col + 1, &board_children),
+                Board::get_entity(row, col - 1, &board_children),
+                Board::get_entity(row, col + 1, &board_children),
+                Board::get_entity(row + 1, col - 1, &board_children),
+                Board::get_entity(row + 1, col, &board_children),
+                Board::get_entity(row + 1, col + 1, &board_children),
+            ];
+
+           surrounding_shapes
+                .iter()
+                .filter(|s| s.is_some())
+                .map(|s| *s.unwrap())
+                .collect()
         }
     }
 
