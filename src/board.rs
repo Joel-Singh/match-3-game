@@ -8,29 +8,36 @@ use shape::*;
 
 use crate::{GameState, TotalMatches};
 
+use utils::*;
+
 #[derive(Event, Default)]
 pub struct MatchMade();
 
 #[derive(Event)]
 pub struct SwapShapes(Entity, Entity);
 
-impl Board {
-    fn get_entity(row: usize, col: usize, board: &Children) -> Option<&Entity> {
-        match Board::get_index(row, col) {
-            Some(index) => board.get(index),
+mod utils {
+    use crate::board::BOARD_SIZE;
+    use bevy::prelude::*;
+
+    pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
+        fn get_index(row: i32, col: i32) -> Option<i32> {
+            if row < 1 || col < 1 ||  row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
+                return None;
+            }
+
+            Some((((row - 1) * BOARD_SIZE as i32) + col) - 1)
+        }
+
+        return match get_index(row, col) {
+            Some(index) => board.get(index as usize),
             None => None,
         }
+
     }
 
-    fn get_index(row: usize, col: usize) -> Option<usize> {
-        if row < 1 || col < 1 ||  row > BOARD_SIZE || col > BOARD_SIZE {
-            return None;
-        }
-
-        Some(((((row - 1) * BOARD_SIZE) + col) - 1) as usize)
-    }
-
-    fn get_row_col(index: usize) -> (usize, usize) {
+    pub fn get_row_col(shape: &Entity, board: &Children) -> (usize, usize) {
+        let index = board.iter().position(|&e| e == *shape).unwrap();
         let row = index / BOARD_SIZE + 1;
         let col = (index % BOARD_SIZE) + 1;
         return (row, col);
@@ -172,12 +179,9 @@ fn handle_swap_shape_events(
     for SwapShapes(button1, button2) in swap_shapes.read() {
         let mut board_children = board_children.single_mut();
 
-        let button1_i = get_index(&board_children, *button1);
-        let button2_i = get_index(&board_children, *button2);
-
-        let is_next_to = is_next_to(button1_i, button2_i);
+        let is_next_to = is_next_to(button1, button2, &board_children);
         if is_next_to {
-            board_children.swap(button1_i, button2_i);
+            swap(*button1, *button2, &mut board_children);
         }
 
         explode_if_bomb((*shapes.get(*button1).unwrap(), *button1), &board_children, &mut commands);
@@ -196,10 +200,9 @@ fn handle_swap_shape_events(
             board_children: &Children,
             commands: &mut Commands,
         ) {
-            let board_index = get_index(board_children, *bomb);
-            let (row, col) = Board::get_row_col(board_index);
+            let (row, col) = get_row_col(bomb, board_children);
 
-            let surrounding_shapes = get_surrounding_shapes(board_children, row, col);
+            let surrounding_shapes = get_surrounding_shapes(board_children, row as i32, col as i32);
             for shape in surrounding_shapes {
                 randomize_shape(&shape, commands)
             }
@@ -209,16 +212,22 @@ fn handle_swap_shape_events(
             commands.entity(*shape).insert(get_random_shape());
         }
 
-        fn get_surrounding_shapes(board_children: &Children, row: usize, col: usize) -> Vec<Entity> {
+        fn swap(entity1: Entity, entity2: Entity, children: &mut Children) {
+            let index1 = children.iter().position(|&e| e == entity1).unwrap();
+            let index2 = children.iter().position(|&e| e == entity2).unwrap();
+            children.swap(index1, index2);
+        }
+
+        fn get_surrounding_shapes(board_children: &Children, row: i32, col: i32) -> Vec<Entity> {
             let surrounding_shapes = [
-                Board::get_entity(row - 1, col - 1, &board_children),
-                Board::get_entity(row - 1, col, &board_children),
-                Board::get_entity(row - 1, col + 1, &board_children),
-                Board::get_entity(row, col - 1, &board_children),
-                Board::get_entity(row, col + 1, &board_children),
-                Board::get_entity(row + 1, col - 1, &board_children),
-                Board::get_entity(row + 1, col, &board_children),
-                Board::get_entity(row + 1, col + 1, &board_children),
+                get_entity(row - 1, col - 1, &board_children),
+                get_entity(row - 1, col, &board_children),
+                get_entity(row - 1, col + 1, &board_children),
+                get_entity(row, col - 1, &board_children),
+                get_entity(row, col + 1, &board_children),
+                get_entity(row + 1, col - 1, &board_children),
+                get_entity(row + 1, col, &board_children),
+                get_entity(row + 1, col + 1, &board_children),
             ];
 
            surrounding_shapes
@@ -229,16 +238,9 @@ fn handle_swap_shape_events(
         }
     }
 
-    fn get_index(board_children: &Children, last_pressed_button_e: Entity) -> usize {
-        board_children
-            .iter()
-            .position(|e| *e == last_pressed_button_e)
-            .unwrap()
-    }
-
-    fn is_next_to(last_pressed_button_i: usize, just_pressed_button_i: usize) -> bool {
-        let (x_1, y_1) = Board::get_row_col(last_pressed_button_i);
-        let (x_2, y_2) = Board::get_row_col(just_pressed_button_i);
+    fn is_next_to(last_pressed_button: &Entity, just_pressed_button: &Entity, children: &Children) -> bool {
+        let (x_1, y_1) = get_row_col(last_pressed_button, &children);
+        let (x_2, y_2) = get_row_col(just_pressed_button, &children);
         let delta_x = (x_1 as i32 - x_2 as i32).abs();
         let delta_y = (y_1 as i32 - y_2 as i32).abs();
 
@@ -295,10 +297,6 @@ struct BombMatch {
 }
 
 fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch> {
-    let get = |row: i32, col: i32| {
-        return Board::get_entity(row as usize, col as usize, board);
-    };
-
     let all_the_same_color = |shapes: &[&Shape]| {
         let first_shape = shapes[0];
         for shape in shapes {
@@ -316,11 +314,11 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch>
             let col = col as i32;
 
             let neighbors = [
-                get(row, col),
-                get(row, col - 1),
-                get(row, col - 2),
-                get(row + 1, col),
-                get(row + 2, col),
+                get_entity(row, col, board),
+                get_entity(row, col - 1, board),
+                get_entity(row, col - 2, board),
+                get_entity(row + 1, col, board),
+                get_entity(row + 2, col, board),
             ];
 
             if neighbors.iter().any(|s| s.is_none()) {
@@ -349,9 +347,12 @@ fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
     // Check horizontally
     for row in 1..=BOARD_SIZE {
         for col in 1..=(BOARD_SIZE - 2) {
-            let first_shape = Board::get_entity(row, col, board).unwrap();
-            let next_shape = Board::get_entity(row, col + 1, board).unwrap();
-            let next_next_shape = Board::get_entity(row, col + 2, board).unwrap();
+            let row = row as i32;
+            let col = col as i32;
+
+            let first_shape = get_entity(row, col, board).unwrap();
+            let next_shape = get_entity(row, col + 1, board).unwrap();
+            let next_next_shape = get_entity(row, col + 2, board).unwrap();
 
             let shapes = shape_q
                 .get_many([*first_shape, *next_shape, *next_next_shape])
@@ -366,9 +367,12 @@ fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
     // Check vertically
     for row in 1..=BOARD_SIZE - 2 {
         for col in 1..=(BOARD_SIZE) {
-            let first_shape = Board::get_entity(row, col, board).unwrap();
-            let next_shape = Board::get_entity(row + 1, col, board).unwrap();
-            let next_next_shape = Board::get_entity(row + 2, col, board).unwrap();
+            let row = row as i32;
+            let col = col as i32;
+
+            let first_shape = get_entity(row, col, board).unwrap();
+            let next_shape = get_entity(row + 1, col, board).unwrap();
+            let next_next_shape = get_entity(row + 2, col, board).unwrap();
 
             let shapes = shape_q
                 .get_many([*first_shape, *next_shape, *next_next_shape])
