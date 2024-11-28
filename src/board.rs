@@ -175,6 +175,10 @@ fn write_swap_shape_event(
     }
 }
 
+fn randomize_shape(shape: &Entity, commands: &mut Commands) {
+    commands.entity(*shape).insert(get_random_shape());
+}
+
 fn handle_swap_shape_events(
     mut board_children: Query<&mut Children, With<Board>>,
     shapes: Query<&Shape>,
@@ -223,10 +227,6 @@ fn handle_swap_shape_events(
             for shape in surrounding_shapes {
                 randomize_shape(&shape, commands)
             }
-        }
-
-        fn randomize_shape(shape: &Entity, commands: &mut Commands) {
-            commands.entity(*shape).insert(get_random_shape());
         }
 
         fn swap(entity1: Entity, entity2: Entity, children: &mut Children) {
@@ -287,7 +287,7 @@ fn handle_bomb_matches(
 
     for bomb_match in bomb_matches {
         for shape in bomb_match.matched_shapes {
-            commands.entity(shape).insert(get_random_shape());
+            randomize_shape(&shape, &mut commands);
         }
         commands.entity(bomb_match.center).insert(Shape::Bomb);
         match_made.send(MatchMade::default());
@@ -306,7 +306,7 @@ fn handle_regular_matches(
     for board_match in matches {
         let commands: &mut Commands = &mut commands;
         for entity in board_match {
-            commands.entity(entity).insert(get_random_shape());
+            randomize_shape(&entity, commands);
         }
         match_made.send(MatchMade::default());
     }
