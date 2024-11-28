@@ -22,7 +22,7 @@ mod utils {
 
     pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
         fn get_index(row: i32, col: i32) -> Option<i32> {
-            if row < 1 || col < 1 ||  row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
+            if row < 1 || col < 1 || row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
                 return None;
             }
 
@@ -32,8 +32,7 @@ mod utils {
         return match get_index(row, col) {
             Some(index) => board.get(index as usize),
             None => None,
-        }
-
+        };
     }
 
     pub fn get_row_col(shape: &Entity, board: &Children) -> (usize, usize) {
@@ -64,7 +63,13 @@ pub(crate) fn board(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                (write_swap_shape_event, handle_swap_shape_events, handle_bomb_matches, handle_regular_matches).chain(),
+                (
+                    write_swap_shape_event,
+                    handle_swap_shape_events,
+                    handle_bomb_matches,
+                    handle_regular_matches,
+                )
+                    .chain(),
                 update_shape_color,
                 match_counter::update,
             )
@@ -184,10 +189,22 @@ fn handle_swap_shape_events(
             swap(*button1, *button2, &mut board_children);
         }
 
-        explode_if_bomb((*shapes.get(*button1).unwrap(), *button1), &board_children, &mut commands);
-        explode_if_bomb((*shapes.get(*button2).unwrap(), *button2), &board_children, &mut commands);
+        explode_if_bomb(
+            (*shapes.get(*button1).unwrap(), *button1),
+            &board_children,
+            &mut commands,
+        );
+        explode_if_bomb(
+            (*shapes.get(*button2).unwrap(), *button2),
+            &board_children,
+            &mut commands,
+        );
 
-        fn explode_if_bomb(shape: (Shape, Entity), board_children: &Children,  commands: &mut Commands) {
+        fn explode_if_bomb(
+            shape: (Shape, Entity),
+            board_children: &Children,
+            commands: &mut Commands,
+        ) {
             let (maybe_bomb, shape_e) = shape;
             if maybe_bomb == Shape::Bomb {
                 explode_surrounding_cells(&shape_e, &board_children, commands);
@@ -230,7 +247,7 @@ fn handle_swap_shape_events(
                 get_entity(row + 1, col + 1, &board_children),
             ];
 
-           surrounding_shapes
+            surrounding_shapes
                 .iter()
                 .filter(|s| s.is_some())
                 .map(|s| *s.unwrap())
@@ -238,7 +255,11 @@ fn handle_swap_shape_events(
         }
     }
 
-    fn is_next_to(last_pressed_button: &Entity, just_pressed_button: &Entity, children: &Children) -> bool {
+    fn is_next_to(
+        last_pressed_button: &Entity,
+        just_pressed_button: &Entity,
+        children: &Children,
+    ) -> bool {
         let (x_1, y_1) = get_row_col(last_pressed_button, &children);
         let (x_2, y_2) = get_row_col(just_pressed_button, &children);
         let delta_x = (x_1 as i32 - x_2 as i32).abs();
