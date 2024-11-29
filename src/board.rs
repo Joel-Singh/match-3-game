@@ -312,12 +312,16 @@ fn handle_regular_matches(
     }
 }
 
-struct BombMatch {
+struct Match {
     center: Entity,
     matched_shapes: Vec<Entity>,
 }
 
-fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch> {
+fn get_matches_general<const N: usize>(
+    board: &Children,
+    shape_q: &Query<&Shape>,
+    neighbors: [(i32, i32); N],
+) -> Vec<Match> {
     let all_the_same_color = |shapes: &[&Shape]| {
         let first_shape = shapes[0];
         for shape in shapes {
@@ -328,38 +332,52 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<BombMatch>
         return true;
     };
 
-    let mut matches: Vec<BombMatch> = vec![];
+    let mut matches: Vec<Match> = vec![];
     for row in 1..=BOARD_SIZE {
         for col in 1..=BOARD_SIZE {
             let row = row as i32;
             let col = col as i32;
 
-            let neighbors = [
-                get_entity(row, col, board),
-                get_entity(row, col - 1, board),
-                get_entity(row, col - 2, board),
-                get_entity(row + 1, col, board),
-                get_entity(row + 2, col, board),
-            ];
+            let neighbors = neighbors
+                .iter()
+                .map(|(row_offset, col_offset)| {
+                    get_entity(row + row_offset, col + col_offset, board)
+                })
+                .collect::<Vec<_>>();
 
-            if neighbors.iter().any(|s| s.is_none()) {
+            let center = get_entity(row, col, board);
+
+            if neighbors.iter().any(|s| s.is_none()) || center.is_none() {
                 continue;
             }
 
-            let neighbors = neighbors.map(|s| *s.unwrap());
+            let neighbors: [Entity; N] = neighbors
+                .iter()
+                .map(|s| *s.unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap();
 
-            let shapes = shape_q.many(neighbors);
+            let center_entity = *center.unwrap();
+
+            let mut shapes = shape_q.many(neighbors).to_vec();
+            let center_shape = shape_q.get(center_entity).unwrap();
+
+            shapes.push(center_shape);
 
             if all_the_same_color(&shapes[..]) {
-                matches.push(BombMatch {
-                    center: neighbors[0],
-                    matched_shapes: neighbors[1..].to_vec(), // Exclude the center
+                matches.push(Match {
+                    center: center_entity,
+                    matched_shapes: neighbors[..].to_vec(),
                 });
             }
         }
     }
-
     matches
+}
+
+fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
+    get_matches_general(board, shape_q, [(0, -1), (0, -2), (1, 0), (2, 0)])
 }
 
 fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
