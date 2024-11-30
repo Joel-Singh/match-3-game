@@ -274,13 +274,14 @@ fn handle_regular_matches(
     mut match_made: EventWriter<MatchMade>,
 ) {
     let board = board.single();
-    let matches = get_matches(board, &shape_q);
+    let matches = get_matches_three(board, &shape_q);
 
     for board_match in matches {
         let commands: &mut Commands = &mut commands;
-        for entity in board_match {
+        for entity in board_match.matched_shapes {
             randomize_shape(&entity, commands);
         }
+        randomize_shape(&board_match.center, commands);
         match_made.send(MatchMade::default());
     }
 }
@@ -370,50 +371,15 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
     matches
 }
 
-fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
-    let mut matches: Vec<[Entity; 3]> = vec![];
+fn get_matches_three(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
+    let mut matches: Vec<Match> = vec![];
 
-    // Check horizontally
-    for row in 1..=BOARD_SIZE {
-        for col in 1..=(BOARD_SIZE - 2) {
-            let row = row as i32;
-            let col = col as i32;
+    matches.extend(get_matches_general(board, shape_q, [(0, 1), (0, 2)]));
+    matches.extend(get_matches_general(board, shape_q, [(0, -1), (0, -2)]));
+    matches.extend(get_matches_general(board, shape_q, [(1, 0), (2, 0)]));
+    matches.extend(get_matches_general(board, shape_q, [(-1, 0), (-2, 0)]));
 
-            let first_shape = get_entity(row, col, board).unwrap();
-            let next_shape = get_entity(row, col + 1, board).unwrap();
-            let next_next_shape = get_entity(row, col + 2, board).unwrap();
-
-            let shapes = shape_q
-                .get_many([*first_shape, *next_shape, *next_next_shape])
-                .unwrap();
-
-            if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
-                matches.push([*first_shape, *next_shape, *next_next_shape])
-            }
-        }
-    }
-
-    // Check vertically
-    for row in 1..=BOARD_SIZE - 2 {
-        for col in 1..=(BOARD_SIZE) {
-            let row = row as i32;
-            let col = col as i32;
-
-            let first_shape = get_entity(row, col, board).unwrap();
-            let next_shape = get_entity(row + 1, col, board).unwrap();
-            let next_next_shape = get_entity(row + 2, col, board).unwrap();
-
-            let shapes = shape_q
-                .get_many([*first_shape, *next_shape, *next_next_shape])
-                .unwrap();
-
-            if *shapes[0] == *shapes[1] && *shapes[0] == *shapes[2] {
-                matches.push([*first_shape, *next_shape, *next_next_shape])
-            }
-        }
-    }
-
-    return matches;
+    matches
 }
 
 fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
