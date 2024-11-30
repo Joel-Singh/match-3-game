@@ -16,33 +16,6 @@ pub struct MatchMade();
 #[derive(Event)]
 pub struct SwapShapes(Entity, Entity);
 
-mod utils {
-    use crate::board::BOARD_SIZE;
-    use bevy::prelude::*;
-
-    pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
-        fn get_index(row: i32, col: i32) -> Option<i32> {
-            if row < 1 || col < 1 || row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
-                return None;
-            }
-
-            Some((((row - 1) * BOARD_SIZE as i32) + col) - 1)
-        }
-
-        return match get_index(row, col) {
-            Some(index) => board.get(index as usize),
-            None => None,
-        };
-    }
-
-    pub fn get_row_col(shape: &Entity, board: &Children) -> (usize, usize) {
-        let index = board.iter().position(|&e| e == *shape).unwrap();
-        let row = index / BOARD_SIZE + 1;
-        let col = (index % BOARD_SIZE) + 1;
-        return (row, col);
-    }
-}
-
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
@@ -449,6 +422,33 @@ fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
 
 fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
     total_matches.0 = 0;
+}
+
+mod utils {
+    use crate::board::BOARD_SIZE;
+    use bevy::prelude::*;
+
+    pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
+        fn get_index(row: i32, col: i32) -> Option<i32> {
+            if row < 1 || col < 1 || row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
+                return None;
+            }
+
+            Some((((row - 1) * BOARD_SIZE as i32) + col) - 1)
+        }
+
+        return match get_index(row, col) {
+            Some(index) => board.get(index as usize),
+            None => None,
+        };
+    }
+
+    pub fn get_row_col(shape: &Entity, board: &Children) -> (usize, usize) {
+        let index = board.iter().position(|&e| e == *shape).unwrap();
+        let row = index / BOARD_SIZE + 1;
+        let col = (index % BOARD_SIZE) + 1;
+        return (row, col);
+    }
 }
 
 mod shape {
