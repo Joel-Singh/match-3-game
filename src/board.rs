@@ -350,6 +350,7 @@ fn get_matches_general<const N: usize>(
     matches
 }
 
+// Matches in an L shape
 fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
     let above = (-1, 0);
     let above_2 = (-2, 0);
