@@ -377,7 +377,24 @@ fn get_matches_general<const N: usize>(
 }
 
 fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
-    get_matches_general(board, shape_q, [(0, -1), (0, -2), (1, 0), (2, 0)])
+    let above = (-1, 0);
+    let above_2 = (-2, 0);
+    let below = (1, 0);
+    let below_2 = (2, 0);
+    let left = (0, -1);
+    let left_2 = (0, -2);
+    let right = (0, 1);
+    let right_2 = (0, 2);
+    let get_matches = |neighbors: [(i32, i32); 4]| get_matches_general(board, shape_q, neighbors);
+
+    let mut matches: Vec<Match> = vec![];
+
+    matches.extend(get_matches([left, left_2, below, below_2]));
+    matches.extend(get_matches([left, left_2, above, above_2]));
+    matches.extend(get_matches([right, right_2, below, below_2]));
+    matches.extend(get_matches([right, right_2, above, above_2]));
+
+    matches
 }
 
 fn get_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<[Entity; 3]> {
