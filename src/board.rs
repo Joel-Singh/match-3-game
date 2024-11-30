@@ -16,6 +16,9 @@ pub struct MatchMade();
 #[derive(Event)]
 pub struct SwapShapes(Entity, Entity);
 
+#[derive(Component)]
+pub struct Deletion;
+
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
@@ -41,6 +44,7 @@ pub(crate) fn board(app: &mut App) {
                     handle_swap_shape_events,
                     handle_bomb_matches,
                     handle_regular_matches,
+                    handle_deletions,
                 )
                     .chain(),
                 update_shape_color,
@@ -148,10 +152,6 @@ fn write_swap_shape_event(
     }
 }
 
-fn randomize_shape(shape: &Entity, commands: &mut Commands) {
-    commands.entity(*shape).insert(get_random_shape());
-}
-
 fn handle_swap_shape_events(
     mut board_children: Query<&mut Children, With<Board>>,
     shapes: Query<&Shape>,
@@ -185,7 +185,7 @@ fn handle_swap_shape_events(
             let (maybe_bomb, shape_e) = shape;
             if maybe_bomb == Shape::Bomb {
                 explode_surrounding_cells(&shape_e, &board_children, commands);
-                randomize_shape(&shape_e, commands);
+                commands.entity(shape_e).insert(Deletion);
             }
         }
 
@@ -198,7 +198,7 @@ fn handle_swap_shape_events(
 
             let surrounding_shapes = get_surrounding_shapes(board_children, row as i32, col as i32);
             for shape in surrounding_shapes {
-                randomize_shape(&shape, commands)
+                commands.entity(shape).insert(Deletion);
             }
         }
 
@@ -260,7 +260,7 @@ fn handle_bomb_matches(
 
     for bomb_match in bomb_matches {
         for shape in bomb_match.matched_shapes {
-            randomize_shape(&shape, &mut commands);
+            commands.entity(shape).insert(Deletion);
         }
         commands.entity(bomb_match.center).insert(Shape::Bomb);
         match_made.send(MatchMade::default());
@@ -279,10 +279,17 @@ fn handle_regular_matches(
     for board_match in matches {
         let commands: &mut Commands = &mut commands;
         for entity in board_match.matched_shapes {
-            randomize_shape(&entity, commands);
+            commands.entity(entity).insert(Deletion);
         }
-        randomize_shape(&board_match.center, commands);
+        commands.entity(board_match.center).insert(Deletion);
         match_made.send(MatchMade::default());
+    }
+}
+
+fn handle_deletions(to_delete: Query<Entity, With<Deletion>>, mut commands: Commands) {
+    for e in &to_delete {
+        commands.entity(e).insert(get_random_shape());
+        commands.entity(e).remove::<Deletion>();
     }
 }
 
