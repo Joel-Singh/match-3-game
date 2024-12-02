@@ -67,15 +67,12 @@ fn layout_nodes(
     match_counter: Query<Entity, With<MatchCounter>>,
     mut commands: Commands,
 ) {
-    let mut container = commands.spawn(NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            margin: UiRect::all(Val::Auto),
-            ..default()
-        },
+    let mut container = commands.spawn(Node {
+        display: Display::Flex,
+        flex_direction: FlexDirection::Column,
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        margin: UiRect::all(Val::Auto),
         ..default()
     });
 
@@ -87,22 +84,19 @@ pub fn spawn_board(mut commands: Commands) {
     commands
         .spawn((
             Board,
-            NodeBundle {
-                style: Style {
-                    width: Val::Px(400.),
-                    height: Val::Px(400.),
-                    row_gap: Val::Px(5.),
-                    column_gap: Val::Px(5.),
-                    padding: UiRect::all(Val::Px(5.)),
-                    grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                    grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                    display: Display::Grid,
-                    margin: UiRect::all(Val::Auto),
-                    ..default()
-                },
-                background_color: Srgba::new(1.0, 1.0, 1.0, 0.1).into(),
+            Node {
+                width: Val::Px(400.),
+                height: Val::Px(400.),
+                row_gap: Val::Px(5.),
+                column_gap: Val::Px(5.),
+                padding: UiRect::all(Val::Px(5.)),
+                grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+                grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+                display: Display::Grid,
+                margin: UiRect::all(Val::Auto),
                 ..default()
             },
+            BackgroundColor(Srgba::new(1.0, 1.0, 1.0, 0.1).into()),
         ))
         .insert(BOARD_POSITION);
 }
@@ -458,18 +452,16 @@ mod shape {
         return random_color;
     }
 
-    pub fn create_shape(shape: Shape) -> (Shape, ButtonBundle) {
+    pub fn create_shape(shape: Shape) -> (Shape, Button, Node, BackgroundColor) {
         (
             shape,
-            ButtonBundle {
-                style: Style {
-                    width: Val::Auto,
-                    height: Val::Auto,
-                    ..default()
-                },
-                background_color: shape.color(),
+            Button::default(),
+            Node {
+                width: Val::Auto,
+                height: Val::Auto,
                 ..default()
             },
+            shape.color(),
         )
     }
 }
@@ -485,14 +477,12 @@ mod match_counter {
     pub fn spawn(mut commands: Commands) {
         commands.spawn((
             MatchCounter,
-            TextBundle::from_section(
-                "0",
-                TextStyle {
-                    font_size: 100.0,
-                    color: WHITE.into(),
-                    ..default()
-                },
-            ),
+            Text::new("0"),
+            TextFont {
+                font_size: 100.0,
+                ..default()
+            },
+            TextColor(WHITE.into()),
         ));
     }
 
@@ -502,7 +492,7 @@ mod match_counter {
         needed_matches: Res<NeededMatches>,
     ) {
         let mut text = match_counter_text.single_mut();
-        text.sections[0].value = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
+        text.0 = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
     }
 
     pub fn delete_entities(

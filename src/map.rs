@@ -25,15 +25,12 @@ fn setup(mut commands: Commands) {
     commands
         .spawn((
             Map,
-            NodeBundle {
-                style: Style {
-                    display: Display::Flex,
-                    flex_direction: FlexDirection::Column,
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    margin: UiRect::all(Val::Auto),
-                    ..default()
-                },
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                margin: UiRect::all(Val::Auto),
                 ..default()
             },
         ))
@@ -48,16 +45,14 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn get_board_button(area: BoardButton) -> (ButtonBundle, BoardButton) {
+fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, BoardButton) {
     (
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(50.),
-                height: Val::Px(50.),
-                margin: UiRect::all(Val::Px(5.)),
-                ..default()
-            },
-            background_color: GRAY_50.into(),
+        Button::default(),
+        BackgroundColor(GRAY_50.into()),
+        Node {
+            width: Val::Px(50.),
+            height: Val::Px(50.),
+            margin: UiRect::all(Val::Px(5.)),
             ..default()
         },
         area,
