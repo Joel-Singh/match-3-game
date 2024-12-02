@@ -424,6 +424,7 @@ mod shape {
     use rand::seq::SliceRandom;
 
     #[derive(Component, Reflect, Clone, Copy, PartialEq)]
+    #[require(Button, Node, BackgroundColor)]
     pub enum Shape {
         Red,
         Blue,
