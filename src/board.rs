@@ -19,6 +19,13 @@ pub struct SwapShapes(Entity, Entity);
 #[derive(Component)]
 pub struct Deletion;
 
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum BoardState {
+    #[default]
+    InPlay,
+    AnimatingFallingShapes,
+}
+
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
 const BOARD_SIZE: usize = 10;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
@@ -26,6 +33,7 @@ const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 pub(crate) fn board(app: &mut App) {
     app.add_event::<SwapShapes>()
         .add_event::<MatchMade>()
+        .init_state::<BoardState>()
         .add_systems(
             OnEnter(GameState::Board),
             (
@@ -40,10 +48,14 @@ pub(crate) fn board(app: &mut App) {
             FixedUpdate,
             (
                 (
-                    write_swap_shape_event,
-                    handle_swap_shape_events,
-                    handle_bomb_matches,
-                    handle_regular_matches,
+                    (
+                        write_swap_shape_event,
+                        handle_swap_shape_events,
+                        handle_bomb_matches,
+                        handle_regular_matches,
+                    )
+                        .chain()
+                        .run_if(in_state(BoardState::InPlay)),
                     handle_deletions,
                 )
                     .chain(),
@@ -241,9 +253,25 @@ fn handle_swap_shape_events(
     }
 }
 
-fn update_shape_color(mut shape: Query<(&Shape, Entity), Changed<Shape>>, mut commands: Commands) {
+fn update_shape_color(
+    mut shape: Query<(&Shape, Entity), Or<(Changed<Shape>, Changed<Deletion>)>>,
+    shapes_being_deleted: Query<&Deletion>,
+    mut commands: Commands,
+) {
     for (shape, e) in shape.iter_mut() {
-        commands.entity(e).insert(shape.color());
+        match shapes_being_deleted.get(e) {
+            Ok(_) => {
+                commands
+                    .entity(e)
+                    .entry::<BackgroundColor>()
+                    .and_modify(|mut bg| {
+                        bg.0 = Color::srgba(0.0, 0.0, 0.0, 0.0);
+                    });
+            }
+            Err(_) => {
+                commands.entity(e).insert(shape.color());
+            }
+        };
     }
 }
 
@@ -284,7 +312,18 @@ fn handle_regular_matches(
     }
 }
 
-fn handle_deletions(to_delete: Query<Entity, With<Deletion>>, mut commands: Commands) {
+fn handle_deletions(
+    to_delete: Query<Entity, With<Deletion>>,
+    mut commands: Commands,
+    mut state: ResMut<NextState<BoardState>>,
+    delta_time: Res<Time>,
+) {
+    if to_delete.iter().count() != 0 {
+        state.set(BoardState::AnimatingFallingShapes);
+    } else {
+        state.set(BoardState::InPlay);
+    }
+
     for e in &to_delete {
         commands.entity(e).insert(get_random_shape());
         commands.entity(e).remove::<Deletion>();
