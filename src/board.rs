@@ -67,14 +67,17 @@ fn layout_nodes(
     match_counter: Query<Entity, With<MatchCounter>>,
     mut commands: Commands,
 ) {
-    let mut container = commands.spawn(Node {
-        display: Display::Flex,
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        margin: UiRect::all(Val::Auto),
-        ..default()
-    });
+    let mut container = commands.spawn((
+        Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            margin: UiRect::all(Val::Auto),
+            ..default()
+        },
+        Name::new("Board and match counter container"),
+    ));
 
     container.add_child(board.single());
     container.add_child(match_counter.single());
@@ -97,6 +100,7 @@ pub fn spawn_board(mut commands: Commands) {
                 ..default()
             },
             BackgroundColor(Srgba::new(1.0, 1.0, 1.0, 0.1).into()),
+            Name::new("Board"),
         ))
         .insert(BOARD_POSITION);
 }
@@ -453,7 +457,7 @@ mod shape {
         return random_color;
     }
 
-    pub fn create_shape(shape: Shape) -> (Shape, Button, Node, BackgroundColor) {
+    pub fn create_shape(shape: Shape) -> (Shape, Button, Node, BackgroundColor, Name) {
         (
             shape,
             Button::default(),
@@ -463,6 +467,7 @@ mod shape {
                 ..default()
             },
             shape.color(),
+            Name::new("Shape"),
         )
     }
 }
