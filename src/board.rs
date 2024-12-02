@@ -102,8 +102,6 @@ pub fn spawn_board(mut commands: Commands) {
             Node {
                 width: Val::Px(400.),
                 height: Val::Px(400.),
-                row_gap: Val::Px(5.),
-                column_gap: Val::Px(5.),
                 padding: UiRect::all(Val::Px(5.)),
                 grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
                 grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
@@ -503,6 +501,7 @@ mod shape {
             Node {
                 width: Val::Auto,
                 height: Val::Auto,
+                margin: UiRect::all(Val::Px(2.)),
                 ..default()
             },
             shape.color(),
