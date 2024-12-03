@@ -361,28 +361,26 @@ fn handle_deletions(
         commands.entity(shape).entry::<Node>().and_modify(move_down);
     }
 
-    let all_shapes_have_fallen = {
-        shapes.iter().all(|e| {
-            let node = nodes.get(e).unwrap();
-            let shape_pos = &get_row_col(&e, board);
+    let all_shapes_have_fallen = shapes.iter().all(|e| {
+        let node = nodes.get(e).unwrap();
+        let shape_pos = &get_row_col(&e, board);
 
-            let empty_shapes_underneath = deleted_shapes
-                .iter()
-                .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
-                .count();
+        let empty_shapes_underneath = deleted_shapes
+            .iter()
+            .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
+            .count();
 
-            match node.top {
-                Val::Percent(top) => {
-                    let needed_top_value = 100.0 * empty_shapes_underneath as f32;
-                    println!("-----------------");
-                    println!("Top: {}, Needed top: {}", top, needed_top_value);
-                    println!("Shape position: {:?}", shape_pos);
-                    top == needed_top_value
-                }
-                _ => panic!("Expected Val::Percent for node top"),
+        match node.top {
+            Val::Percent(top) => {
+                let needed_top_value = 100.0 * empty_shapes_underneath as f32;
+                println!("-----------------");
+                println!("Top: {}, Needed top: {}", top, needed_top_value);
+                println!("Shape position: {:?}", shape_pos);
+                top == needed_top_value
             }
-        })
-    };
+            _ => panic!("Expected Val::Percent for node top"),
+        }
+    });
 
     println!("All shapes have fallen: {}", all_shapes_have_fallen);
     if all_shapes_have_fallen {
