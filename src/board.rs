@@ -337,33 +337,30 @@ fn handle_deletions(
         .map(|e| get_row_col(&e, board))
         .collect::<Vec<_>>();
 
-    for column in 1..=BOARD_SIZE {
+    for shape in shapes.iter() {
+        let shape_pos = get_row_col(&shape, board);
         let deleted_shapes = deleted_shapes
             .iter()
-            .filter(|(_, col)| *col == column)
+            .filter(|(_, col)| *col == shape_pos.1)
             .collect::<Vec<_>>();
 
-        if deleted_shapes.len() == 0 {
-            continue;
-        }
+        let deleted_shapes_underneath = deleted_shapes
+            .iter()
+            .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
+            .count();
 
-        let shapes_in_this_column = shapes.iter().filter(|e| {
-            let (_row, col) = get_row_col(e, board);
-            col == column
-        });
-
-        for shape in shapes_in_this_column {
-            let delta_seconds = time.delta_secs();
-            let move_down = move |mut node: Mut<Node>| match node.top {
-                Val::Percent(top) => {
-                    let new_percentage = top + delta_seconds * 100.0;
-                    node.top = Val::Percent(new_percentage.min(100.0));
-                }
-                _ => panic!("Expected Val::Percent for node top"),
-            };
-            commands.entity(shape).entry::<Node>().and_modify(move_down);
-        }
+        let delta_seconds = time.delta_secs();
+        let move_down = move |mut node: Mut<Node>| match node.top {
+            Val::Percent(top) => {
+                let new_percentage = top + delta_seconds * 100.0;
+                node.top =
+                    Val::Percent(new_percentage.min(100.0 * deleted_shapes_underneath as f32));
+            }
+            _ => panic!("Expected Val::Percent for node top"),
+        };
+        commands.entity(shape).entry::<Node>().and_modify(move_down);
     }
+
     let all_shapes_have_fallen = {
         let falling_columns = deleted_shapes
             .iter()
@@ -372,18 +369,33 @@ fn handle_deletions(
 
         shapes.iter().all(|e| {
             let node = nodes.get(e).unwrap();
-            let in_falling_column = falling_columns.contains(&get_row_col(&e, board).1);
+            let shape_pos = &get_row_col(&e, board);
+
+            let in_falling_column = falling_columns.contains(&shape_pos.1);
+
+            let empty_shapes_underneath = deleted_shapes
+                .iter()
+                .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
+                .count();
+
             if !in_falling_column {
                 return true;
             }
 
             match node.top {
-                Val::Percent(top) => top == 100.0,
+                Val::Percent(top) => {
+                    let needed_top_value = 100.0 * empty_shapes_underneath as f32;
+                    println!("-----------------");
+                    println!("Top: {}, Needed top: {}", top, needed_top_value);
+                    println!("Shape position: {:?}", shape_pos);
+                    top == needed_top_value
+                }
                 _ => panic!("Expected Val::Percent for node top"),
             }
         })
     };
 
+    println!("All shapes have fallen: {}", all_shapes_have_fallen);
     if all_shapes_have_fallen {
         commands.trigger(CleanupFallingAnimation);
     }
