@@ -16,6 +16,9 @@ pub struct MatchMade();
 #[derive(Event)]
 pub struct SwapShapes(Entity, Entity);
 
+#[derive(Event)]
+pub struct CleanupFallingAnimation;
+
 #[derive(Component)]
 pub struct Deletion;
 
@@ -27,13 +30,14 @@ enum BoardState {
 }
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
-const BOARD_SIZE: usize = 10;
+const BOARD_SIZE: usize = 5;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
     app.add_event::<SwapShapes>()
         .add_event::<MatchMade>()
         .init_state::<BoardState>()
+        .add_event::<CleanupFallingAnimation>()
         .add_systems(
             OnEnter(GameState::Board),
             (
@@ -64,6 +68,7 @@ pub(crate) fn board(app: &mut App) {
             )
                 .run_if(in_state(GameState::Board)),
         )
+        .add_observer(cleanup_falling_animation)
         .add_systems(
             OnExit(GameState::Board),
             (
@@ -252,7 +257,7 @@ fn handle_swap_shape_events(
 }
 
 fn update_shape_color(
-    mut shape: Query<(&Shape, Entity), Or<(Changed<Shape>, Changed<Deletion>)>>,
+    mut shape: Query<(&Shape, Entity) /* , Or<(Changed<Shape>, Changed<Deletion>)> */>,
     shapes_being_deleted: Query<&Deletion>,
     mut commands: Commands,
 ) {
@@ -312,19 +317,96 @@ fn handle_regular_matches(
 
 fn handle_deletions(
     to_delete: Query<Entity, With<Deletion>>,
-    mut commands: Commands,
+    shapes: Query<Entity, With<Shape>>,
+    board: Query<&Children, With<Board>>,
+    nodes: Query<&Node, With<Shape>>,
     mut state: ResMut<NextState<BoardState>>,
-    delta_time: Res<Time>,
+    time: Res<Time>,
+    mut commands: Commands,
 ) {
+    let board = board.single();
+
     if to_delete.iter().count() != 0 {
         state.set(BoardState::AnimatingFallingShapes);
     } else {
         state.set(BoardState::InPlay);
     }
 
-    for e in &to_delete {
-        commands.entity(e).insert(get_random_shape());
-        commands.entity(e).remove::<Deletion>();
+    let deleted_shapes = to_delete
+        .iter()
+        .map(|e| get_row_col(&e, board))
+        .collect::<Vec<_>>();
+
+    for column in 1..=BOARD_SIZE {
+        let deleted_shapes = deleted_shapes
+            .iter()
+            .filter(|(_, col)| *col == column)
+            .collect::<Vec<_>>();
+
+        if deleted_shapes.len() == 0 {
+            continue;
+        }
+
+        let shapes_in_this_column = shapes.iter().filter(|e| {
+            let (_row, col) = get_row_col(e, board);
+            col == column
+        });
+
+        for shape in shapes_in_this_column {
+            let delta_seconds = time.delta_secs();
+            let move_down = move |mut node: Mut<Node>| match node.top {
+                Val::Percent(top) => {
+                    let new_percentage = top + delta_seconds * 100.0;
+                    node.top = Val::Percent(new_percentage.min(100.0));
+                }
+                _ => panic!("Expected Val::Percent for node top"),
+            };
+            commands.entity(shape).entry::<Node>().and_modify(move_down);
+        }
+    }
+    let all_shapes_have_fallen = {
+        let falling_columns = deleted_shapes
+            .iter()
+            .map(|(_, col)| *col)
+            .collect::<Vec<_>>();
+
+        shapes.iter().all(|e| {
+            let node = nodes.get(e).unwrap();
+            let in_falling_column = falling_columns.contains(&get_row_col(&e, board).1);
+            if !in_falling_column {
+                return true;
+            }
+
+            match node.top {
+                Val::Percent(top) => top == 100.0,
+                _ => panic!("Expected Val::Percent for node top"),
+            }
+        })
+    };
+
+    if all_shapes_have_fallen {
+        commands.trigger(CleanupFallingAnimation);
+    }
+}
+
+fn cleanup_falling_animation(
+    _trigger: Trigger<CleanupFallingAnimation>,
+    shapes: Query<Entity, With<Shape>>,
+    deleted_shapes: Query<Entity, With<Deletion>>,
+    mut commands: Commands,
+) {
+    for shape in deleted_shapes.iter() {
+        commands.entity(shape).remove::<Deletion>();
+        commands.entity(shape).insert(get_random_shape());
+    }
+
+    for shape in shapes.iter() {
+        commands
+            .entity(shape)
+            .entry::<Node>()
+            .and_modify(|mut node| {
+                node.top = Val::Percent(0.0);
+            });
     }
 }
 
@@ -502,6 +584,7 @@ mod shape {
                 width: Val::Auto,
                 height: Val::Auto,
                 margin: UiRect::all(Val::Px(2.)),
+                top: Val::Percent(0.0),
                 ..default()
             },
             shape.color(),
