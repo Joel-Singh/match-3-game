@@ -362,25 +362,14 @@ fn handle_deletions(
     }
 
     let all_shapes_have_fallen = {
-        let falling_columns = deleted_shapes
-            .iter()
-            .map(|(_, col)| *col)
-            .collect::<Vec<_>>();
-
         shapes.iter().all(|e| {
             let node = nodes.get(e).unwrap();
             let shape_pos = &get_row_col(&e, board);
-
-            let in_falling_column = falling_columns.contains(&shape_pos.1);
 
             let empty_shapes_underneath = deleted_shapes
                 .iter()
                 .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
                 .count();
-
-            if !in_falling_column {
-                return true;
-            }
 
             match node.top {
                 Val::Percent(top) => {
