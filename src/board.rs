@@ -529,6 +529,7 @@ mod utils {
         };
     }
 
+    // From the top-left, e.g rows are 1, 2, 3 going down. Columns are 1, 2, 3 going right.
     pub fn get_row_col(shape: &Entity, board: &Children) -> (usize, usize) {
         let index = board.iter().position(|&e| e == *shape).unwrap();
         let row = index / BOARD_SIZE + 1;
