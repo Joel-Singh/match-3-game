@@ -585,19 +585,7 @@ fn get_matches_three(
         board,
         shape_q,
         deleted_shapes_q,
-        [(0, -1), (0, -2)],
-    ));
-    matches.extend(get_matches_general(
-        board,
-        shape_q,
-        deleted_shapes_q,
         [(1, 0), (2, 0)],
-    ));
-    matches.extend(get_matches_general(
-        board,
-        shape_q,
-        deleted_shapes_q,
-        [(-1, 0), (-2, 0)],
     ));
 
     matches
