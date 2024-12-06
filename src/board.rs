@@ -1,4 +1,5 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
+use std::iter::zip;
 
 #[derive(Component)]
 pub struct Board;
@@ -330,6 +331,7 @@ fn handle_deletions(
         state.set(BoardState::AnimatingFallingShapes);
     } else {
         state.set(BoardState::InPlay);
+        return;
     }
 
     let deleted_shapes = to_delete
@@ -387,10 +389,15 @@ fn handle_deletions(
 fn cleanup_falling_animation(
     _trigger: Trigger<CleanupFallingAnimation>,
     shapes: Query<Entity, With<Shape>>,
-    deleted_shapes: Query<Entity, With<Deletion>>,
+    deleted_shapes_q: Query<Entity, With<Deletion>>,
+    board_children: Query<&Children, With<Board>>,
+    board: Query<Entity, With<Board>>,
     mut commands: Commands,
 ) {
-    for shape in deleted_shapes.iter() {
+    let board_children = board_children.single();
+    let board = board.single();
+
+    for shape in deleted_shapes_q.iter() {
         commands.entity(shape).remove::<Deletion>();
         commands.entity(shape).insert(get_random_shape());
     }
@@ -403,6 +410,54 @@ fn cleanup_falling_animation(
                 node.top = Val::Percent(0.0);
             });
     }
+
+    let mut new_board_state = board_children.iter().map(|e| *e).collect::<Vec<_>>();
+    for col in 1..=BOARD_SIZE {
+        let mut regular_shapes_in_this_col = shapes
+            .iter()
+            .filter(|e| {
+                let (_r, c) = get_row_col(e, board_children);
+                c == col as usize
+            })
+            .collect::<Vec<_>>();
+
+        // drain_filter essentially
+        let mut deleted_shapes = {
+            let mut deleted_shapes: Vec<Entity> = vec![];
+            let mut removals: Vec<usize> = vec![];
+            for i in 0..regular_shapes_in_this_col.len() {
+                if let Ok(_) = deleted_shapes_q.get(regular_shapes_in_this_col[i]) {
+                    deleted_shapes.push(regular_shapes_in_this_col[i]);
+                    removals.push(i);
+                }
+            }
+
+            removals.sort();
+            for i in removals.into_iter().rev() {
+                regular_shapes_in_this_col.remove(i);
+            }
+
+            deleted_shapes
+        };
+
+        regular_shapes_in_this_col.sort_by(|a, b| {
+            let row_a = get_row_col(a, board_children).0;
+            let row_b = get_row_col(b, board_children).0;
+
+            row_a.cmp(&row_b)
+        });
+
+        deleted_shapes.append(&mut regular_shapes_in_this_col);
+        let new_column = deleted_shapes;
+
+        for (shape, row) in zip(new_column, 1..=BOARD_SIZE) {
+            new_board_state[get_index(row as i32, col as i32).unwrap() as usize] = shape;
+        }
+    }
+
+    commands
+        .entity(board)
+        .replace_children(&new_board_state[..]);
 }
 
 struct Match {
@@ -515,18 +570,18 @@ mod utils {
     use bevy::prelude::*;
 
     pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
-        fn get_index(row: i32, col: i32) -> Option<i32> {
-            if row < 1 || col < 1 || row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
-                return None;
-            }
-
-            Some((((row - 1) * BOARD_SIZE as i32) + col) - 1)
-        }
-
         return match get_index(row, col) {
             Some(index) => board.get(index as usize),
             None => None,
         };
+    }
+
+    pub fn get_index(row: i32, col: i32) -> Option<i32> {
+        if row < 1 || col < 1 || row > BOARD_SIZE as i32 || col > BOARD_SIZE as i32 {
+            return None;
+        }
+
+        Some((((row - 1) * BOARD_SIZE as i32) + col) - 1)
     }
 
     // From the top-left, e.g rows are 1, 2, 3 going down. Columns are 1, 2, 3 going right.
