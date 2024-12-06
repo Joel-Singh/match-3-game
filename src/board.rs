@@ -282,11 +282,12 @@ fn update_shape_color(
 fn handle_bomb_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
+    deleted_shapes_q: Query<&Deletion>,
     mut commands: Commands,
     mut match_made: EventWriter<MatchMade>,
 ) {
     let board = board.single();
-    let bomb_matches = get_bomb_matches(board, &shape_q);
+    let bomb_matches = get_bomb_matches(board, &shape_q, &deleted_shapes_q);
 
     for bomb_match in bomb_matches {
         for shape in bomb_match.matched_shapes {
@@ -300,11 +301,12 @@ fn handle_bomb_matches(
 fn handle_regular_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
+    deleted_shapes_q: Query<&Deletion>,
     mut commands: Commands,
     mut match_made: EventWriter<MatchMade>,
 ) {
     let board = board.single();
-    let matches = get_matches_three(board, &shape_q);
+    let matches = get_matches_three(board, &shape_q, &deleted_shapes_q);
 
     for board_match in matches {
         let commands: &mut Commands = &mut commands;
@@ -468,12 +470,22 @@ struct Match {
 fn get_matches_general<const N: usize>(
     board: &Children,
     shape_q: &Query<&Shape>,
+    deleted_shapes: &Query<&Deletion>,
     neighbors: [(i32, i32); N],
 ) -> Vec<Match> {
     let all_the_same_color = |shapes: &[&Shape]| {
         let first_shape = shapes[0];
         for shape in shapes {
             if *shape != first_shape {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    let not_already_matched = |shapes: &[Entity]| {
+        for shape in shapes {
+            if let Ok(_) = deleted_shapes.get(*shape) {
                 return false;
             }
         }
@@ -510,10 +522,12 @@ fn get_matches_general<const N: usize>(
 
             let mut shapes = shape_q.many(neighbors).to_vec();
             let center_shape = shape_q.get(center_entity).unwrap();
-
             shapes.push(center_shape);
 
-            if all_the_same_color(&shapes[..]) {
+            let mut entities = neighbors[..].to_vec();
+            entities.push(center_entity);
+
+            if all_the_same_color(&shapes[..]) && not_already_matched(&entities[..]) {
                 matches.push(Match {
                     center: center_entity,
                     matched_shapes: neighbors[..].to_vec(),
@@ -525,7 +539,11 @@ fn get_matches_general<const N: usize>(
 }
 
 // Matches in an L shape
-fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
+fn get_bomb_matches(
+    board: &Children,
+    shape_q: &Query<&Shape>,
+    deleted_shapes_q: &Query<&Deletion>,
+) -> Vec<Match> {
     let above = (-1, 0);
     let above_2 = (-2, 0);
     let below = (1, 0);
@@ -534,7 +552,10 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
     let left_2 = (0, -2);
     let right = (0, 1);
     let right_2 = (0, 2);
-    let get_matches = |neighbors: [(i32, i32); 4]| get_matches_general(board, shape_q, neighbors);
+
+    let get_matches = |neighbors: [(i32, i32); 4]| {
+        get_matches_general(board, shape_q, deleted_shapes_q, neighbors)
+    };
 
     let mut matches: Vec<Match> = vec![];
 
@@ -546,13 +567,37 @@ fn get_bomb_matches(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
     matches
 }
 
-fn get_matches_three(board: &Children, shape_q: &Query<&Shape>) -> Vec<Match> {
+fn get_matches_three(
+    board: &Children,
+    shape_q: &Query<&Shape>,
+    deleted_shapes_q: &Query<&Deletion>,
+) -> Vec<Match> {
     let mut matches: Vec<Match> = vec![];
 
-    matches.extend(get_matches_general(board, shape_q, [(0, 1), (0, 2)]));
-    matches.extend(get_matches_general(board, shape_q, [(0, -1), (0, -2)]));
-    matches.extend(get_matches_general(board, shape_q, [(1, 0), (2, 0)]));
-    matches.extend(get_matches_general(board, shape_q, [(-1, 0), (-2, 0)]));
+    matches.extend(get_matches_general(
+        board,
+        shape_q,
+        deleted_shapes_q,
+        [(0, 1), (0, 2)],
+    ));
+    matches.extend(get_matches_general(
+        board,
+        shape_q,
+        deleted_shapes_q,
+        [(0, -1), (0, -2)],
+    ));
+    matches.extend(get_matches_general(
+        board,
+        shape_q,
+        deleted_shapes_q,
+        [(1, 0), (2, 0)],
+    ));
+    matches.extend(get_matches_general(
+        board,
+        shape_q,
+        deleted_shapes_q,
+        [(-1, 0), (-2, 0)],
+    ));
 
     matches
 }
