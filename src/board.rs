@@ -462,6 +462,7 @@ fn cleanup_falling_animation(
         .replace_children(&new_board_state[..]);
 }
 
+#[derive(Debug)]
 struct Match {
     center: Entity,
     matched_shapes: Vec<Entity>,
