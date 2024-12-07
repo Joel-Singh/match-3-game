@@ -23,7 +23,7 @@ pub enum GameState {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
-            level: bevy::log::Level::DEBUG,
+            //level: bevy::log::Level::DEBUG,
             ..default()
         }))
         .init_state::<GameState>()
