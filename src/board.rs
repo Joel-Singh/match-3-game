@@ -330,7 +330,7 @@ fn handle_swap_shape_events(
 }
 
 fn update_shape_color(
-    mut shape: Query<(&Shape, Entity) /* , Or<(Changed<Shape>, Changed<Deletion>)> */>,
+    mut shape: Query<(&Shape, Entity), Or<(Changed<Shape>, Changed<Deletion>)>>,
     shapes_being_deleted: Query<&Deletion>,
     mut commands: Commands,
 ) {
