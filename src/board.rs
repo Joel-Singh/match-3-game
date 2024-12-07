@@ -215,31 +215,35 @@ fn handle_swap_shape_events(
             for shape in surrounding_shapes {
                 commands.entity(shape).insert(Deletion);
             }
+
+            fn get_surrounding_shapes(
+                board_children: &Children,
+                row: i32,
+                col: i32,
+            ) -> Vec<Entity> {
+                let surrounding_shapes = [
+                    get_entity(row - 1, col - 1, &board_children),
+                    get_entity(row - 1, col, &board_children),
+                    get_entity(row - 1, col + 1, &board_children),
+                    get_entity(row, col - 1, &board_children),
+                    get_entity(row, col + 1, &board_children),
+                    get_entity(row + 1, col - 1, &board_children),
+                    get_entity(row + 1, col, &board_children),
+                    get_entity(row + 1, col + 1, &board_children),
+                ];
+
+                surrounding_shapes
+                    .iter()
+                    .filter(|s| s.is_some())
+                    .map(|s| *s.unwrap())
+                    .collect()
+            }
         }
 
         fn swap(entity1: Entity, entity2: Entity, children: &mut Children) {
             let index1 = children.iter().position(|&e| e == entity1).unwrap();
             let index2 = children.iter().position(|&e| e == entity2).unwrap();
             children.swap(index1, index2);
-        }
-
-        fn get_surrounding_shapes(board_children: &Children, row: i32, col: i32) -> Vec<Entity> {
-            let surrounding_shapes = [
-                get_entity(row - 1, col - 1, &board_children),
-                get_entity(row - 1, col, &board_children),
-                get_entity(row - 1, col + 1, &board_children),
-                get_entity(row, col - 1, &board_children),
-                get_entity(row, col + 1, &board_children),
-                get_entity(row + 1, col - 1, &board_children),
-                get_entity(row + 1, col, &board_children),
-                get_entity(row + 1, col + 1, &board_children),
-            ];
-
-            surrounding_shapes
-                .iter()
-                .filter(|s| s.is_some())
-                .map(|s| *s.unwrap())
-                .collect()
         }
     }
 
