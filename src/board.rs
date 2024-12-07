@@ -57,6 +57,7 @@ pub(crate) fn board(app: &mut App) {
                         write_swap_shape_event,
                         handle_swap_shape_events,
                         handle_bomb_matches,
+                        handle_liner_matches,
                         handle_regular_matches,
                     )
                         .chain()
@@ -276,6 +277,59 @@ fn update_shape_color(
                 commands.entity(e).insert(shape.color());
             }
         };
+    }
+}
+
+fn handle_liner_matches(
+    board: Query<&Children, With<Board>>,
+    shape_q: Query<&Shape>,
+    deleted_shapes_q: Query<&Deletion>,
+    mut commands: Commands,
+    mut match_made: EventWriter<MatchMade>,
+) {
+    let board = board.single();
+    let (horizontal_matches, vertical_matches) =
+        get_matches_liner(board, &shape_q, &deleted_shapes_q);
+
+    for board_match in horizontal_matches.iter().chain(vertical_matches.iter()) {
+        for entity in &board_match.matched_shapes {
+            commands.entity(*entity).insert(Deletion);
+        }
+
+        match_made.send(MatchMade::default());
+    }
+
+    for v_match in vertical_matches {
+        commands.entity(v_match.center).insert(Shape::VerticalLiner);
+    }
+
+    for h_match in horizontal_matches {
+        commands
+            .entity(h_match.center)
+            .insert(Shape::HorizontalLiner);
+    }
+
+    // 5 in a row
+    fn get_matches_liner(
+        board: &Children,
+        shape_q: &Query<&Shape>,
+        deleted_shapes_q: &Query<&Deletion>,
+    ) -> (Vec<Match>, Vec<Match>) {
+        let horizontal_matches = get_matches_general(
+            board,
+            shape_q,
+            deleted_shapes_q,
+            [(0, -1), (0, -2), (0, 1), (0, 2)],
+        );
+
+        let vertical_matches = get_matches_general(
+            board,
+            shape_q,
+            deleted_shapes_q,
+            [(-1, 0), (-2, 0), (1, 0), (2, 0)],
+        );
+
+        (horizontal_matches, vertical_matches)
     }
 }
 
@@ -528,7 +582,9 @@ fn get_matches_general<const N: usize>(
             let mut entities = neighbors[..].to_vec();
             entities.push(center_entity);
 
-            if all_the_same_color(&shapes[..]) && not_already_matched(&entities[..]) {
+            let not_special = shapes.iter().all(|s| !s.is_special());
+            if all_the_same_color(&shapes[..]) && not_already_matched(&entities[..]) && not_special
+            {
                 matches.push(Match {
                     center: center_entity,
                     matched_shapes: neighbors[..].to_vec(),
@@ -639,6 +695,8 @@ mod shape {
         Green,
         Pink,
         Bomb,
+        HorizontalLiner,
+        VerticalLiner,
     }
 
     impl Shape {
@@ -649,6 +707,14 @@ mod shape {
                 Shape::Green => GREEN_500.into(),
                 Shape::Pink => PINK_500.into(),
                 Shape::Bomb => GRAY_950.into(),
+                Shape::HorizontalLiner | Shape::VerticalLiner => YELLOW_500.into(),
+            }
+        }
+
+        pub fn is_special(&self) -> bool {
+            match self {
+                Shape::Bomb | Shape::HorizontalLiner | Shape::VerticalLiner => true,
+                _ => false,
             }
         }
     }
