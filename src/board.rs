@@ -191,6 +191,33 @@ fn handle_swap_shape_events(
             &board_children,
             &mut commands,
         );
+        remove_line_if_liner(
+            (*shapes.get(*button1).unwrap(), *button1),
+            &board_children,
+            &mut commands,
+        );
+        remove_line_if_liner(
+            (*shapes.get(*button2).unwrap(), *button2),
+            &board_children,
+            &mut commands,
+        );
+
+        fn remove_line_if_liner(
+            shape: (Shape, Entity),
+            board_children: &Children,
+            commands: &mut Commands,
+        ) {
+            let (maybe_liner, shape_e) = shape;
+            if maybe_liner == Shape::HorizontalLiner || maybe_liner == Shape::VerticalLiner {
+                remove_cells_in_a_line(
+                    &shape_e,
+                    maybe_liner == Shape::HorizontalLiner,
+                    board_children,
+                    commands,
+                );
+                commands.entity(shape_e).insert(Deletion);
+            }
+        }
 
         fn explode_if_bomb(
             shape: (Shape, Entity),
@@ -201,6 +228,46 @@ fn handle_swap_shape_events(
             if maybe_bomb == Shape::Bomb {
                 explode_surrounding_cells(&shape_e, &board_children, commands);
                 commands.entity(shape_e).insert(Deletion);
+            }
+        }
+
+        fn remove_cells_in_a_line(
+            liner: &Entity,
+            is_horizontal: bool,
+            board_children: &Children,
+            commands: &mut Commands,
+        ) {
+            let (row, col) = get_row_col(liner, board_children);
+
+            let line_of_shapes =
+                get_line_of_shapes(board_children, row as i32, col as i32, is_horizontal);
+
+            for shape in line_of_shapes {
+                commands.entity(shape).insert(Deletion);
+            }
+
+            fn get_line_of_shapes(
+                board_children: &Children,
+                row: i32,
+                col: i32,
+                is_horizontal: bool,
+            ) -> Vec<Entity> {
+                let mut locations: Vec<(i32, i32)>;
+                if is_horizontal {
+                    locations = (1..=BOARD_SIZE).map(|c| (row, c as i32)).collect();
+                } else {
+                    locations = (1..=BOARD_SIZE).map(|r| (r as i32, col)).collect();
+                }
+
+                locations.retain(|&x| x != (row, col));
+
+                let line_of_shapes = locations
+                    .iter()
+                    .filter_map(|(r, c)| get_entity(*r, *c, board_children))
+                    .map(|e| *e)
+                    .collect::<Vec<_>>();
+
+                line_of_shapes
             }
         }
 
