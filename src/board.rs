@@ -181,54 +181,69 @@ fn handle_swap_shape_events(
             swap(*button1, *button2, &mut board_children);
         }
 
-        explode_if_bomb(
-            (*shapes.get(*button1).unwrap(), *button1),
-            &board_children,
-            &mut commands,
-        );
-        explode_if_bomb(
-            (*shapes.get(*button2).unwrap(), *button2),
-            &board_children,
-            &mut commands,
-        );
-        remove_line_if_liner(
-            (*shapes.get(*button1).unwrap(), *button1),
-            &board_children,
-            &mut commands,
-        );
-        remove_line_if_liner(
-            (*shapes.get(*button2).unwrap(), *button2),
-            &board_children,
-            &mut commands,
-        );
+        for b in [button1, button2] {
+            let entity = *b;
+            let shape = *shapes.get(entity).unwrap();
 
-        fn remove_line_if_liner(
+            take_action_for_special(
+                explode_bomb,
+                Shape::Bomb,
+                (shape, entity),
+                &board_children,
+                &mut commands,
+            );
+
+            take_action_for_special(
+                remove_line,
+                Shape::HorizontalLiner,
+                (shape, entity),
+                &board_children,
+                &mut commands,
+            );
+
+            take_action_for_special(
+                remove_line,
+                Shape::VerticalLiner,
+                (shape, entity),
+                &board_children,
+                &mut commands,
+            );
+        }
+
+        type SpecialShapeCallback = fn((Shape, Entity), &Children, &mut Commands);
+        fn take_action_for_special(
+            action: SpecialShapeCallback,
+            special_shape: Shape,
             shape: (Shape, Entity),
             board_children: &Children,
             commands: &mut Commands,
         ) {
-            let (maybe_liner, shape_e) = shape;
-            if maybe_liner == Shape::HorizontalLiner || maybe_liner == Shape::VerticalLiner {
-                remove_cells_in_a_line(
-                    &shape_e,
-                    maybe_liner == Shape::HorizontalLiner,
-                    board_children,
-                    commands,
-                );
-                commands.entity(shape_e).insert(Deletion);
+            if shape.0 == special_shape {
+                action(shape, board_children, commands);
             }
         }
 
-        fn explode_if_bomb(
-            shape: (Shape, Entity),
+        fn remove_line(
+            (shape, entity): (Shape, Entity),
             board_children: &Children,
             commands: &mut Commands,
         ) {
-            let (maybe_bomb, shape_e) = shape;
-            if maybe_bomb == Shape::Bomb {
-                explode_surrounding_cells(&shape_e, &board_children, commands);
-                commands.entity(shape_e).insert(Deletion);
-            }
+            remove_cells_in_a_line(
+                &entity,
+                shape == Shape::HorizontalLiner,
+                board_children,
+                commands,
+            );
+            commands.entity(entity).insert(Deletion);
+        }
+
+        fn explode_bomb(
+            (_, entity): (Shape, Entity),
+            board_children: &Children,
+            commands: &mut Commands,
+        ) {
+            explode_surrounding_cells(&entity, &board_children, commands);
+            commands.entity(entity).insert(Deletion);
         }
 
         fn remove_cells_in_a_line(
