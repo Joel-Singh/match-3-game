@@ -56,8 +56,8 @@ pub(crate) fn board(app: &mut App) {
                     (
                         write_swap_shape_event,
                         handle_swap_shape_events,
-                        spawn_bombs_from_matches,
-                        spawn_liners_from_matches,
+                        spawn_bombs_from_matches.run_if(bomb_unlocked),
+                        spawn_liners_from_matches.run_if(liner_unlocked),
                         handle_regular_matches,
                     )
                         .chain()
@@ -80,6 +80,14 @@ pub(crate) fn board(app: &mut App) {
                 update_map_finishes,
             ),
         );
+}
+
+fn bomb_unlocked(map_finishes: Res<MapFinishes>) -> bool {
+    map_finishes.map1
+}
+
+fn liner_unlocked(map_finishes: Res<MapFinishes>) -> bool {
+    map_finishes.map2
 }
 
 fn layout_nodes(
