@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::GRAY_50, prelude::*};
 
-use crate::{GameState, NeededMatches};
+use crate::{CurrentMap, GameState, NeededMatches};
 
 #[derive(Component)]
 pub struct Map;
@@ -61,21 +61,23 @@ fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, BoardB
 
 fn go_to_board_on_click(
     mut state: ResMut<NextState<GameState>>,
+    mut current_map: ResMut<CurrentMap>,
     mut needed_matches: ResMut<NeededMatches>,
     mut interaction_query: Query<(&Interaction, &BoardButton), Changed<Interaction>>,
 ) {
+    let mut configure_board = |next_needed_matches: u32, next_map: CurrentMap| {
+        needed_matches.0 = next_needed_matches;
+        *current_map = next_map;
+        state.set(GameState::Board);
+    };
+
     for (interaction, board_button) in &mut interaction_query {
         if *interaction == Interaction::Pressed {
-            needed_matches.0 = get_needed_matches(*board_button);
-            state.set(GameState::Board);
-        }
-    }
-
-    fn get_needed_matches(board_button: BoardButton) -> u32 {
-        match board_button {
-            BoardButton::First => 50,
-            BoardButton::Second => 51,
-            BoardButton::Third => 52,
+            match *board_button {
+                BoardButton::First => configure_board(50, CurrentMap::One),
+                BoardButton::Second => configure_board(51, CurrentMap::Two),
+                BoardButton::Third => configure_board(52, CurrentMap::Three),
+            }
         }
     }
 }

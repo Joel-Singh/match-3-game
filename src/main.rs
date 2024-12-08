@@ -13,6 +13,15 @@ pub struct TotalMatches(u32);
 #[derive(Resource)]
 pub struct NeededMatches(u32);
 
+#[derive(Resource, Default)]
+pub enum CurrentMap {
+    #[default]
+    None,
+    One,
+    Two,
+    Three,
+}
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
     #[default]
@@ -35,6 +44,7 @@ fn main() {
         .add_systems(FixedUpdate, go_to_map_after_enough_matches)
         .insert_resource(TotalMatches(0))
         .insert_resource(NeededMatches(30))
+        .insert_resource(CurrentMap::None)
         .run();
 }
 
