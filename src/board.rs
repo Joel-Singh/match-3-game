@@ -507,6 +507,10 @@ fn handle_deletions(
     }
 
     let all_shapes_have_fallen = shapes.iter().all(|e| {
+        if to_delete.get(e).is_ok() {
+            return true;
+        }
+
         let node = nodes.get(e).unwrap();
         let shape_pos = &get_row_col(&e, board);
 
