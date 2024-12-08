@@ -7,7 +7,7 @@ pub struct Board;
 use match_counter::MatchCounter;
 use shape::*;
 
-use crate::{GameState, TotalMatches};
+use crate::{CurrentMap, GameState, MapFinishes, TotalMatches};
 
 use utils::*;
 
@@ -77,6 +77,7 @@ pub(crate) fn board(app: &mut App) {
                 delete_entities,
                 match_counter::delete_entities,
                 reset_total_matches,
+                update_map_finishes,
             ),
         );
 }
@@ -739,6 +740,15 @@ fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
 
 fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
     total_matches.0 = 0;
+}
+
+fn update_map_finishes(mut map_finishes: ResMut<MapFinishes>, current_map: Res<CurrentMap>) {
+    match current_map.get() {
+        CurrentMap::One => map_finishes.map1 = true,
+        CurrentMap::Two => map_finishes.map2 = true,
+        CurrentMap::Three => map_finishes.map3 = true,
+        _ => {}
+    }
 }
 
 mod utils {

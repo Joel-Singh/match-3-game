@@ -13,6 +13,23 @@ pub struct TotalMatches(u32);
 #[derive(Resource)]
 pub struct NeededMatches(u32);
 
+#[derive(Resource, Debug)]
+pub struct MapFinishes {
+    map1: bool,
+    map2: bool,
+    map3: bool,
+}
+
+impl Default for MapFinishes {
+    fn default() -> Self {
+        MapFinishes {
+            map1: false,
+            map2: false,
+            map3: false,
+        }
+    }
+}
+
 #[derive(Resource, Default)]
 pub enum CurrentMap {
     #[default]
@@ -20,6 +37,12 @@ pub enum CurrentMap {
     One,
     Two,
     Three,
+}
+
+impl CurrentMap {
+    pub fn get(&self) -> &Self {
+        return self;
+    }
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -44,6 +67,7 @@ fn main() {
         .add_systems(FixedUpdate, go_to_map_after_enough_matches)
         .insert_resource(TotalMatches(0))
         .insert_resource(NeededMatches(30))
+        .insert_resource(MapFinishes::default())
         .insert_resource(CurrentMap::None)
         .run();
 }
