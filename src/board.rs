@@ -56,8 +56,8 @@ pub(crate) fn board(app: &mut App) {
                     (
                         write_swap_shape_event,
                         handle_swap_shape_events,
-                        handle_bomb_matches,
-                        handle_liner_matches,
+                        spawn_bombs_from_matches,
+                        spawn_liners_from_matches,
                         handle_regular_matches,
                     )
                         .chain()
@@ -367,7 +367,7 @@ fn update_shape_color(
     }
 }
 
-fn handle_liner_matches(
+fn spawn_liners_from_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
     deleted_shapes_q: Query<&Deletion>,
@@ -420,7 +420,7 @@ fn handle_liner_matches(
     }
 }
 
-fn handle_bomb_matches(
+fn spawn_bombs_from_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
     deleted_shapes_q: Query<&Deletion>,
