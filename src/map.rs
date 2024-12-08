@@ -74,9 +74,9 @@ fn go_to_board_on_click(
     for (interaction, board_button) in &mut interaction_query {
         if *interaction == Interaction::Pressed {
             match *board_button {
-                BoardButton::First => configure_board(50, CurrentMap::One),
-                BoardButton::Second => configure_board(51, CurrentMap::Two),
-                BoardButton::Third => configure_board(52, CurrentMap::Three),
+                BoardButton::First => configure_board(10, CurrentMap::One),
+                BoardButton::Second => configure_board(20, CurrentMap::Two),
+                BoardButton::Third => configure_board(30, CurrentMap::Three),
             }
         }
     }
