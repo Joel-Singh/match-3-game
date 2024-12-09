@@ -405,49 +405,32 @@ fn spawn_liners_from_matches(
         match_made.send(MatchMade::default());
     }
 
-    for v_match in vertical_matches {
-        let mut all_shapes = v_match.matched_shapes.clone();
-        all_shapes.push(v_match.center.clone());
+    let matches_and_shapes = [
+        (&vertical_matches, Shape::VerticalLiner),
+        (&horizontal_matches, Shape::HorizontalLiner),
+    ];
 
-        let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
-            let just_swapped_shapes = just_swapped_shapes.0;
-            *e == &just_swapped_shapes[0] || *e == &just_swapped_shapes[1]
-        });
+    for (matches, shape) in matches_and_shapes.iter() {
+        for r#match in *matches {
+            let mut all_shapes = r#match.matched_shapes.clone();
+            all_shapes.push(r#match.center.clone());
 
-        if let Some(just_swapped_shape_in_liner_match) = just_swapped_shape_in_liner_match {
-            commands
-                .entity(*just_swapped_shape_in_liner_match)
-                .insert(Shape::VerticalLiner);
-            commands
-                .entity(*just_swapped_shape_in_liner_match)
-                .remove::<Deletion>();
-        } else {
-            commands.entity(v_match.center).insert(Shape::VerticalLiner);
-            commands.entity(v_match.center).remove::<Deletion>();
-        }
-    }
+            let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
+                let just_swapped_shapes = just_swapped_shapes.0;
+                *e == &just_swapped_shapes[0] || *e == &just_swapped_shapes[1]
+            });
 
-    for h_match in horizontal_matches {
-        let mut all_shapes = h_match.matched_shapes.clone();
-        all_shapes.push(h_match.center.clone());
-
-        let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
-            let just_swapped_shapes = just_swapped_shapes.0;
-            *e == &just_swapped_shapes[0] || *e == &just_swapped_shapes[1]
-        });
-
-        if let Some(just_swapped_shape_in_liner_match) = just_swapped_shape_in_liner_match {
-            commands
-                .entity(*just_swapped_shape_in_liner_match)
-                .insert(Shape::HorizontalLiner);
-            commands
-                .entity(*just_swapped_shape_in_liner_match)
-                .remove::<Deletion>();
-        } else {
-            commands
-                .entity(h_match.center)
-                .insert(Shape::HorizontalLiner);
-            commands.entity(h_match.center).remove::<Deletion>();
+            if let Some(just_swapped_shape_in_liner_match) = just_swapped_shape_in_liner_match {
+                commands
+                    .entity(*just_swapped_shape_in_liner_match)
+                    .insert(*shape);
+                commands
+                    .entity(*just_swapped_shape_in_liner_match)
+                    .remove::<Deletion>();
+            } else {
+                commands.entity(r#match.center).insert(Shape::VerticalLiner);
+                commands.entity(r#match.center).remove::<Deletion>();
+            }
         }
     }
 
