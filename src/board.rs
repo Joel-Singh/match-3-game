@@ -505,7 +505,8 @@ fn handle_deletions(
         let delta_seconds = time.delta_secs();
         let move_down = move |mut node: Mut<Node>| match node.top {
             Val::Percent(top) => {
-                let new_percentage = top + delta_seconds * 100.0;
+                const FALLING_SPEED: f32 = 300.0;
+                let new_percentage = top + delta_seconds * FALLING_SPEED;
                 node.top =
                     Val::Percent(new_percentage.min(100.0 * deleted_shapes_underneath as f32));
             }
