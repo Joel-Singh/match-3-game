@@ -542,7 +542,7 @@ fn handle_deletions(
 }
 
 fn cleanup_falling_animation(
-    _trigger: Trigger<CleanupFallingAnimation>,
+    _: Trigger<CleanupFallingAnimation>,
     shapes: Query<Entity, With<Shape>>,
     deleted_shapes_q: Query<Entity, With<Deletion>>,
     board_children: Query<&Children, With<Board>>,
