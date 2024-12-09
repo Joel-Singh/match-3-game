@@ -23,6 +23,9 @@ pub struct CleanupFallingAnimation;
 #[derive(Component)]
 pub struct Deletion;
 
+#[derive(Resource)]
+pub struct JustSwappedShapes([Entity; 2]);
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 enum BoardState {
     #[default]
@@ -38,6 +41,10 @@ pub(crate) fn board(app: &mut App) {
     app.add_event::<SwapShapes>()
         .add_event::<MatchMade>()
         .init_state::<BoardState>()
+        .insert_resource(JustSwappedShapes([
+            Entity::from_raw(0),
+            Entity::from_raw(0),
+        ]))
         .add_event::<CleanupFallingAnimation>()
         .add_systems(
             OnEnter(GameState::Board),
@@ -179,6 +186,7 @@ fn write_swap_shape_event(
 fn handle_swap_shape_events(
     mut board_children: Query<&mut Children, With<Board>>,
     shapes: Query<&Shape>,
+    mut just_swapped_shapes: ResMut<JustSwappedShapes>,
     mut swap_shapes: EventReader<SwapShapes>,
     mut commands: Commands,
 ) {
@@ -188,6 +196,7 @@ fn handle_swap_shape_events(
         let is_next_to = is_next_to(button1, button2, &board_children);
         if is_next_to {
             swap(*button1, *button2, &mut board_children);
+            just_swapped_shapes.0 = [*button1, *button2];
         }
 
         for b in [button1, button2] {
@@ -379,6 +388,7 @@ fn spawn_liners_from_matches(
     board: Query<&Children, With<Board>>,
     shape_q: Query<&Shape>,
     deleted_shapes_q: Query<&Deletion>,
+    just_swapped_shapes: Res<JustSwappedShapes>,
     mut commands: Commands,
     mut match_made: EventWriter<MatchMade>,
 ) {
@@ -390,39 +400,68 @@ fn spawn_liners_from_matches(
         for entity in &board_match.matched_shapes {
             commands.entity(*entity).insert(Deletion);
         }
+        commands.entity(board_match.center).insert(Deletion);
 
         match_made.send(MatchMade::default());
     }
 
     for v_match in vertical_matches {
-        commands.entity(v_match.center).insert(Shape::VerticalLiner);
+        let mut all_shapes = v_match.matched_shapes.clone();
+        all_shapes.push(v_match.center.clone());
+
+        let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
+            let just_swapped_shapes = just_swapped_shapes.0;
+            *e == &just_swapped_shapes[0] || *e == &just_swapped_shapes[1]
+        });
+
+        if let Some(just_swapped_shape_in_liner_match) = just_swapped_shape_in_liner_match {
+            commands
+                .entity(*just_swapped_shape_in_liner_match)
+                .insert(Shape::VerticalLiner);
+            commands
+                .entity(*just_swapped_shape_in_liner_match)
+                .remove::<Deletion>();
+        } else {
+            commands.entity(v_match.center).insert(Shape::VerticalLiner);
+            commands.entity(v_match.center).remove::<Deletion>();
+        }
     }
 
     for h_match in horizontal_matches {
-        commands
-            .entity(h_match.center)
-            .insert(Shape::HorizontalLiner);
+        let mut all_shapes = h_match.matched_shapes.clone();
+        all_shapes.push(h_match.center.clone());
+
+        let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
+            let just_swapped_shapes = just_swapped_shapes.0;
+            *e == &just_swapped_shapes[0] || *e == &just_swapped_shapes[1]
+        });
+
+        if let Some(just_swapped_shape_in_liner_match) = just_swapped_shape_in_liner_match {
+            commands
+                .entity(*just_swapped_shape_in_liner_match)
+                .insert(Shape::HorizontalLiner);
+            commands
+                .entity(*just_swapped_shape_in_liner_match)
+                .remove::<Deletion>();
+        } else {
+            commands
+                .entity(h_match.center)
+                .insert(Shape::HorizontalLiner);
+            commands.entity(h_match.center).remove::<Deletion>();
+        }
     }
 
-    // 5 in a row
+    // 4 in a row
     fn get_matches_liner(
         board: &Children,
         shape_q: &Query<&Shape>,
         deleted_shapes_q: &Query<&Deletion>,
     ) -> (Vec<Match>, Vec<Match>) {
-        let horizontal_matches = get_matches_general(
-            board,
-            shape_q,
-            deleted_shapes_q,
-            [(0, -1), (0, -2), (0, 1), (0, 2)],
-        );
+        let horizontal_matches =
+            get_matches_general(board, shape_q, deleted_shapes_q, [(0, 1), (0, 2), (0, 3)]);
 
-        let vertical_matches = get_matches_general(
-            board,
-            shape_q,
-            deleted_shapes_q,
-            [(-1, 0), (-2, 0), (1, 0), (2, 0)],
-        );
+        let vertical_matches =
+            get_matches_general(board, shape_q, deleted_shapes_q, [(1, 0), (2, 0), (3, 0)]);
 
         (horizontal_matches, vertical_matches)
     }
