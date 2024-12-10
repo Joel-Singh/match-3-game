@@ -33,6 +33,7 @@ fn setup(mut commands: Commands) {
                 margin: UiRect::all(Val::Auto),
                 ..default()
             },
+            Name::new("BoardButton Container"),
         ))
         .with_children(|parent| {
             parent.spawn(get_board_button(BoardButton::Third));
@@ -45,7 +46,7 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, BoardButton) {
+fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, Name, BoardButton) {
     (
         Button::default(),
         BackgroundColor(GRAY_50.into()),
@@ -55,6 +56,7 @@ fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, BoardB
             margin: UiRect::all(Val::Px(5.)),
             ..default()
         },
+        Name::new("BoardButton"),
         area,
     )
 }
