@@ -36,9 +36,9 @@ fn setup(mut commands: Commands) {
             Name::new("BoardButton Container"),
         ))
         .with_children(|parent| {
-            parent.spawn(get_board_button(BoardButton::Third));
-            parent.spawn(get_board_button(BoardButton::Second));
-            parent.spawn(get_board_button(BoardButton::First));
+            insert_board_button_bundle(BoardButton::Third, &mut parent.spawn(()));
+            insert_board_button_bundle(BoardButton::Second, &mut parent.spawn(()));
+            insert_board_button_bundle(BoardButton::First, &mut parent.spawn(()));
         });
 }
 
@@ -46,8 +46,8 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, Name, BoardButton) {
-    (
+fn insert_board_button_bundle(area: BoardButton, commands: &mut EntityCommands) {
+    commands.insert((
         Button::default(),
         BackgroundColor(GRAY_50.into()),
         Node {
@@ -58,7 +58,7 @@ fn get_board_button(area: BoardButton) -> (Button, BackgroundColor, Node, Name, 
         },
         Name::new("BoardButton"),
         area,
-    )
+    ));
 }
 
 fn go_to_board_on_click(
