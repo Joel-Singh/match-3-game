@@ -63,6 +63,7 @@ pub(crate) fn board(app: &mut App) {
                     (
                         write_swap_shape_event,
                         handle_swap_shape_events,
+                        spawn_eliminators_from_matches,
                         spawn_bombs_from_matches.run_if(bomb_unlocked),
                         spawn_liners_from_matches.run_if(liner_unlocked),
                         handle_regular_matches,
@@ -381,6 +382,50 @@ fn update_shape_color(
                 commands.entity(e).insert(shape.color());
             }
         };
+    }
+}
+
+fn spawn_eliminators_from_matches(
+    board: Query<&Children, With<Board>>,
+    shape_q: Query<&Shape>,
+    deleted_shapes_q: Query<&Deletion>,
+    mut commands: Commands,
+    mut match_made: EventWriter<MatchMade>,
+) {
+    let board = board.single();
+    let matches = get_matches_eliminator(board, &shape_q, &deleted_shapes_q);
+
+    for r#match in matches {
+        for entity in r#match.matched_shapes {
+            commands.entity(entity).insert(Deletion);
+        }
+        commands.entity(r#match.center).insert(Shape::Eliminator);
+
+        match_made.send(MatchMade::default());
+    }
+
+    fn get_matches_eliminator(
+        board: &Children,
+        shape_q: &Query<&Shape>,
+        deleted_shapes_q: &Query<&Deletion>,
+    ) -> Vec<Match> {
+        let mut horizontal_matches = get_matches_general(
+            board,
+            shape_q,
+            deleted_shapes_q,
+            [(0, -1), (0, -2), (0, 1), (0, 2)],
+        );
+
+        let mut vertical_matches = get_matches_general(
+            board,
+            shape_q,
+            deleted_shapes_q,
+            [(-1, 0), (-2, 0), (1, 0), (2, 0)],
+        );
+
+        horizontal_matches.append(&mut vertical_matches);
+        let all_matches = horizontal_matches;
+        all_matches
     }
 }
 
@@ -828,6 +873,7 @@ mod shape {
         Bomb,
         HorizontalLiner,
         VerticalLiner,
+        Eliminator,
     }
 
     impl Shape {
@@ -839,13 +885,16 @@ mod shape {
                 Shape::Pink => PINK_500.into(),
                 Shape::Bomb => GRAY_950.into(),
                 Shape::HorizontalLiner | Shape::VerticalLiner => YELLOW_500.into(),
+                Shape::Eliminator => PURPLE_500.into(),
             }
         }
 
         pub fn is_special(&self) -> bool {
             match self {
-                Shape::Bomb | Shape::HorizontalLiner | Shape::VerticalLiner => true,
-                _ => false,
+                Shape::Bomb | Shape::HorizontalLiner | Shape::VerticalLiner | Shape::Eliminator => {
+                    true
+                }
+                Shape::Red | Shape::Blue | Shape::Green | Shape::Pink => false,
             }
         }
     }
