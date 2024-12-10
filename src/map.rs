@@ -8,7 +8,7 @@ use crate::{CurrentMap, GameState, MapFinishes, NeededMatches};
 #[derive(Component)]
 pub struct Map;
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 enum BoardButton {
     First,
     Second,
@@ -21,6 +21,14 @@ impl BoardButton {
             BoardButton::First => "1",
             BoardButton::Second => "2",
             BoardButton::Third => "3",
+        }
+    }
+
+    fn map_available(&self, map_finishes: &MapFinishes) -> bool {
+        match self {
+            BoardButton::First => !map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3,
+            BoardButton::Second => map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3,
+            BoardButton::Third => map_finishes.map1 && map_finishes.map2 && !map_finishes.map3,
         }
     }
 }
@@ -94,29 +102,18 @@ fn go_to_board_on_click(
     };
 
     for (interaction, board_button) in &mut interaction_query {
-        match *board_button {
-            BoardButton::First => {
-                if map_finishes.map1 | map_finishes.map2 | map_finishes.map3 {
-                    return;
-                }
-            }
-            BoardButton::Second => {
-                if !map_finishes.map1 | map_finishes.map2 | map_finishes.map3 {
-                    return;
-                }
-            }
-            BoardButton::Third => {
-                if !map_finishes.map1 | !map_finishes.map2 | map_finishes.map3 {
-                    return;
-                }
-            }
+        if *interaction != Interaction::Pressed {
+            continue;
         }
-        if *interaction == Interaction::Pressed {
-            match *board_button {
-                BoardButton::First => configure_board(10, CurrentMap::One),
-                BoardButton::Second => configure_board(20, CurrentMap::Two),
-                BoardButton::Third => configure_board(30, CurrentMap::Three),
-            }
+
+        if !board_button.map_available(&map_finishes) {
+            return;
+        }
+
+        match *board_button {
+            BoardButton::First => configure_board(10, CurrentMap::One),
+            BoardButton::Second => configure_board(20, CurrentMap::Two),
+            BoardButton::Third => configure_board(30, CurrentMap::Three),
         }
     }
 }
