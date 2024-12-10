@@ -1,4 +1,7 @@
-use bevy::{color::palettes::tailwind::GRAY_50, prelude::*};
+use bevy::{
+    color::palettes::tailwind::{GRAY_50, GRAY_950},
+    prelude::*,
+};
 
 use crate::{CurrentMap, GameState, MapFinishes, NeededMatches};
 
@@ -10,6 +13,16 @@ enum BoardButton {
     First,
     Second,
     Third,
+}
+
+impl BoardButton {
+    fn as_str(&self) -> &str {
+        match self {
+            BoardButton::First => "1",
+            BoardButton::Second => "2",
+            BoardButton::Third => "3",
+        }
+    }
 }
 
 pub fn map(app: &mut App) {
@@ -57,6 +70,12 @@ fn insert_board_button_bundle(area: BoardButton, commands: &mut EntityCommands) 
             ..default()
         },
         Name::new("BoardButton"),
+        Text::new(area.as_str()),
+        TextLayout {
+            justify: JustifyText::Center,
+            ..default()
+        },
+        TextColor(GRAY_950.into()),
         area,
     ));
 }
