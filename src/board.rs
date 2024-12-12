@@ -64,7 +64,7 @@ pub(crate) fn board(app: &mut App) {
                     (
                         write_swap_shape_event,
                         handle_swap_shape_events,
-                        spawn_eliminators_from_matches,
+                        spawn_eliminators_from_matches.run_if(eliminator_unlocked),
                         spawn_bombs_from_matches.run_if(bomb_unlocked),
                         spawn_liners_from_matches.run_if(liner_unlocked),
                         handle_regular_matches,
@@ -89,6 +89,10 @@ pub(crate) fn board(app: &mut App) {
                 update_map_finishes,
             ),
         );
+}
+
+fn eliminator_unlocked(map_finishes: Res<MapFinishes>) -> bool {
+    map_finishes.map3
 }
 
 fn bomb_unlocked(map_finishes: Res<MapFinishes>) -> bool {
