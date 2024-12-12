@@ -57,9 +57,9 @@ fn setup(mut commands: Commands) {
             Name::new("BoardButton Container"),
         ))
         .with_children(|parent| {
-            insert_board_button_bundle(BoardButton::Third, &mut parent.spawn(()));
-            insert_board_button_bundle(BoardButton::Second, &mut parent.spawn(()));
-            insert_board_button_bundle(BoardButton::First, &mut parent.spawn(()));
+            insert_board_button_bundle(BoardButton::Third, &mut parent.spawn_empty());
+            insert_board_button_bundle(BoardButton::Second, &mut parent.spawn_empty());
+            insert_board_button_bundle(BoardButton::First, &mut parent.spawn_empty());
         });
 }
 
