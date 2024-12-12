@@ -57,9 +57,21 @@ fn setup(mut commands: Commands) {
             Name::new("BoardButton Container"),
         ))
         .with_children(|parent| {
-            insert_board_button_bundle(BoardButton::Third, &mut parent.spawn_empty());
-            insert_board_button_bundle(BoardButton::Second, &mut parent.spawn_empty());
-            insert_board_button_bundle(BoardButton::First, &mut parent.spawn_empty());
+            parent
+                .spawn(get_board_button_bundle(BoardButton::Third))
+                .with_children(|parent| {
+                    parent.spawn(get_board_button_text_bundle(BoardButton::Third));
+                });
+            parent
+                .spawn(get_board_button_bundle(BoardButton::Second))
+                .with_children(|parent| {
+                    parent.spawn(get_board_button_text_bundle(BoardButton::Second));
+                });
+            parent
+                .spawn(get_board_button_bundle(BoardButton::First))
+                .with_children(|parent| {
+                    parent.spawn(get_board_button_text_bundle(BoardButton::First));
+                });
         });
 }
 
@@ -67,31 +79,44 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
     commands.entity(map.single()).despawn_recursive();
 }
 
-fn insert_board_button_bundle(area: BoardButton, commands: &mut EntityCommands) {
-    let text_color = if area.map_available(&MapFinishes::default()) {
-        GREEN_300
-    } else {
-        GRAY_950
-    };
-
-    commands.insert((
+fn get_board_button_bundle(
+    area: BoardButton,
+) -> (Button, BackgroundColor, Node, Name, BoardButton) {
+    (
         Button::default(),
         BackgroundColor(GRAY_50.into()),
         Node {
             width: Val::Px(50.),
             height: Val::Px(50.),
             margin: UiRect::all(Val::Px(5.)),
+            justify_content: JustifyContent::Center,
             ..default()
         },
         Name::new("BoardButton"),
+        area,
+    )
+}
+
+fn get_board_button_text_bundle(area: BoardButton) -> (Text, TextLayout, TextColor, Node, Name) {
+    let text_color = if area.map_available(&MapFinishes::default()) {
+        GREEN_300
+    } else {
+        GRAY_950
+    };
+
+    (
         Text::new(area.as_str()),
         TextLayout {
             justify: JustifyText::Center,
             ..default()
         },
         TextColor(text_color.into()),
-        area,
-    ));
+        Node {
+            margin: UiRect::all(Val::Auto),
+            ..default()
+        },
+        Name::new("BoardButton Text"),
+    )
 }
 
 fn go_to_board_on_click(
