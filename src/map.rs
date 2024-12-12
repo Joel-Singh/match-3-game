@@ -1,7 +1,7 @@
 use std::slice::Iter;
 
 use bevy::{
-    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300, GREEN_950},
+    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300},
     prelude::*,
 };
 
