@@ -1,5 +1,5 @@
 use bevy::{
-    color::palettes::tailwind::{GRAY_50, GRAY_950},
+    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300, GREEN_950},
     prelude::*,
 };
 
@@ -68,6 +68,12 @@ fn cleanup(mut commands: Commands, map: Query<Entity, With<Map>>) {
 }
 
 fn insert_board_button_bundle(area: BoardButton, commands: &mut EntityCommands) {
+    let text_color = if area.map_available(&MapFinishes::default()) {
+        GREEN_300
+    } else {
+        GRAY_950
+    };
+
     commands.insert((
         Button::default(),
         BackgroundColor(GRAY_50.into()),
@@ -83,7 +89,7 @@ fn insert_board_button_bundle(area: BoardButton, commands: &mut EntityCommands) 
             justify: JustifyText::Center,
             ..default()
         },
-        TextColor(GRAY_950.into()),
+        TextColor(text_color.into()),
         area,
     ));
 }
