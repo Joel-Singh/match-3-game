@@ -1,5 +1,7 @@
+use std::slice::Iter;
+
 use bevy::{
-    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300, GREEN_950},
+    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300},
     prelude::*,
 };
 
@@ -31,6 +33,10 @@ impl BoardButton {
             BoardButton::Third => map_finishes.map1 && map_finishes.map2 && !map_finishes.map3,
         }
     }
+
+    fn iterator() -> Iter<'static, Self> {
+        [BoardButton::First, BoardButton::Second, BoardButton::Third].iter()
+    }
 }
 
 pub fn map(app: &mut App) {
@@ -48,7 +54,7 @@ fn setup(mut commands: Commands, map_finishes: Res<MapFinishes>) {
             Map,
             Node {
                 display: Display::Flex,
-                flex_direction: FlexDirection::Column,
+                flex_direction: FlexDirection::ColumnReverse,
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 margin: UiRect::all(Val::Auto),
@@ -57,30 +63,13 @@ fn setup(mut commands: Commands, map_finishes: Res<MapFinishes>) {
             Name::new("BoardButton Container"),
         ))
         .with_children(|parent| {
-            parent
-                .spawn(get_board_button_bundle(BoardButton::Third))
-                .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(
-                        BoardButton::Third,
-                        &map_finishes,
-                    ));
-                });
-            parent
-                .spawn(get_board_button_bundle(BoardButton::Second))
-                .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(
-                        BoardButton::Second,
-                        &map_finishes,
-                    ));
-                });
-            parent
-                .spawn(get_board_button_bundle(BoardButton::First))
-                .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(
-                        BoardButton::First,
-                        &map_finishes,
-                    ));
-                });
+            for board_button in BoardButton::iterator() {
+                parent
+                    .spawn(get_board_button_bundle(*board_button))
+                    .with_children(|parent| {
+                        parent.spawn(get_board_button_text_bundle(*board_button, &map_finishes));
+                    });
+            }
         });
 }
 
