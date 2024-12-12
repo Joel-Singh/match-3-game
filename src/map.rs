@@ -1,7 +1,7 @@
 use std::slice::Iter;
 
 use bevy::{
-    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300},
+    color::palettes::tailwind::{GRAY_50, GRAY_950, GREEN_300, GREEN_950},
     prelude::*,
 };
 
@@ -15,6 +15,7 @@ enum BoardButton {
     First,
     Second,
     Third,
+    Fourth,
 }
 
 impl BoardButton {
@@ -23,19 +24,36 @@ impl BoardButton {
             BoardButton::First => "1",
             BoardButton::Second => "2",
             BoardButton::Third => "3",
+            BoardButton::Fourth => "4",
         }
     }
 
     fn map_available(&self, map_finishes: &MapFinishes) -> bool {
         match self {
-            BoardButton::First => !map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3,
-            BoardButton::Second => map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3,
-            BoardButton::Third => map_finishes.map1 && map_finishes.map2 && !map_finishes.map3,
+            BoardButton::First => {
+                !map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3 && !map_finishes.map4
+            }
+
+            BoardButton::Second => {
+                map_finishes.map1 && !map_finishes.map2 && !map_finishes.map3 && !map_finishes.map4
+            }
+            BoardButton::Third => {
+                map_finishes.map1 && map_finishes.map2 && !map_finishes.map3 && !map_finishes.map4
+            }
+            BoardButton::Fourth => {
+                map_finishes.map1 && map_finishes.map2 && map_finishes.map3 && !map_finishes.map4
+            }
         }
     }
 
     fn iterator() -> Iter<'static, Self> {
-        [BoardButton::First, BoardButton::Second, BoardButton::Third].iter()
+        [
+            BoardButton::First,
+            BoardButton::Second,
+            BoardButton::Third,
+            BoardButton::Fourth,
+        ]
+        .iter()
     }
 }
 
@@ -146,6 +164,7 @@ fn go_to_board_on_click(
             BoardButton::First => configure_board(10, CurrentMap::One),
             BoardButton::Second => configure_board(20, CurrentMap::Two),
             BoardButton::Third => configure_board(30, CurrentMap::Three),
+            BoardButton::Fourth => configure_board(40, CurrentMap::Four),
         }
     }
 }

@@ -854,7 +854,8 @@ fn update_map_finishes(mut map_finishes: ResMut<MapFinishes>, current_map: Res<C
         CurrentMap::One => map_finishes.map1 = true,
         CurrentMap::Two => map_finishes.map2 = true,
         CurrentMap::Three => map_finishes.map3 = true,
-        _ => {}
+        CurrentMap::Four => map_finishes.map4 = true,
+        CurrentMap::None => {}
     }
 }
 

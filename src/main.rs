@@ -18,6 +18,7 @@ pub struct MapFinishes {
     map1: bool,
     map2: bool,
     map3: bool,
+    map4: bool,
 }
 
 impl Default for MapFinishes {
@@ -26,6 +27,7 @@ impl Default for MapFinishes {
             map1: false,
             map2: false,
             map3: false,
+            map4: false,
         }
     }
 }
@@ -37,6 +39,7 @@ pub enum CurrentMap {
     One,
     Two,
     Three,
+    Four,
 }
 
 impl CurrentMap {
