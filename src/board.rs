@@ -1,4 +1,5 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
+use rand::prelude::*;
 use std::iter::zip;
 
 #[derive(Component)]
@@ -227,6 +228,14 @@ fn handle_swap_shape_events(
                 &board_children,
                 &mut commands,
             );
+
+            take_action_for_special(
+                eliminate,
+                Shape::Eliminator,
+                (shape, entity),
+                &board_children,
+                &mut commands,
+            );
         }
 
         type SpecialShapeCallback = fn((Shape, Entity), &Children, &mut Commands);
@@ -239,6 +248,24 @@ fn handle_swap_shape_events(
         ) {
             if shape.0 == special_shape {
                 action(shape, board_children, commands);
+            }
+        }
+
+        fn eliminate((_, e): (Shape, Entity), board: &Children, commands: &mut Commands) {
+            remove_random_shapes(board, commands);
+
+            commands.entity(e).insert(Deletion);
+
+            fn remove_random_shapes(board: &Children, commands: &mut Commands) {
+                let board = board.iter().collect::<Vec<_>>();
+                let random_shapes = board
+                    .choose_multiple(&mut rand::thread_rng(), BOARD_SIZE * 3)
+                    .map(|e| **e)
+                    .collect::<Vec<_>>();
+
+                for shape in random_shapes {
+                    commands.entity(shape).insert(Deletion);
+                }
             }
         }
 
