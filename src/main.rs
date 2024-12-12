@@ -7,6 +7,9 @@ use board::{board, MatchMade};
 mod map;
 use map::map;
 
+mod win_screen;
+use win_screen::win_screen;
+
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
@@ -32,7 +35,7 @@ impl Default for MapFinishes {
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, PartialEq)]
 pub enum CurrentMap {
     #[default]
     None,
@@ -53,6 +56,7 @@ pub enum GameState {
     #[default]
     Map,
     Board,
+    WinScreen,
 }
 
 fn main() {
@@ -65,9 +69,10 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(board)
         .add_plugins(map)
+        .add_plugins(win_screen)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
-        .add_systems(FixedUpdate, go_to_map_after_enough_matches)
+        .add_systems(FixedUpdate, go_to_map_or_winscreen_after_enough_matches)
         .insert_resource(TotalMatches(0))
         .insert_resource(NeededMatches(30))
         .insert_resource(MapFinishes::default())
@@ -88,12 +93,17 @@ fn increment_total_matches(
     }
 }
 
-fn go_to_map_after_enough_matches(
+fn go_to_map_or_winscreen_after_enough_matches(
     total_matches: Res<TotalMatches>,
     needed_matches: Res<NeededMatches>,
     mut state: ResMut<NextState<GameState>>,
+    current_map: Res<CurrentMap>,
 ) {
     if total_matches.0 >= needed_matches.0 {
-        state.set(GameState::Map);
+        if *current_map == CurrentMap::Four {
+            state.set(GameState::WinScreen);
+        } else {
+            state.set(GameState::Map);
+        }
     }
 }
