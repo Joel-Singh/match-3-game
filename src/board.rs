@@ -590,15 +590,8 @@ fn handle_deletions_and_animate(
 
     for shape in shapes.iter() {
         let shape_pos = get_row_col(&shape, board);
-        let deleted_shapes = deleted_shapes
-            .iter()
-            .filter(|(_, col)| *col == shape_pos.1)
-            .collect::<Vec<_>>();
-
-        let deleted_shapes_underneath = deleted_shapes
-            .iter()
-            .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
-            .count();
+        let deleted_shapes_underneath =
+            get_num_of_empty_shapes_underneath(&deleted_shapes, shape_pos);
 
         let delta_seconds = time.delta_secs();
         let move_down = move |mut node: Mut<Node>| match node.top {
@@ -611,6 +604,22 @@ fn handle_deletions_and_animate(
             _ => panic!("Expected Val::Percent for node top"),
         };
         commands.entity(shape).entry::<Node>().and_modify(move_down);
+    }
+
+    fn get_num_of_empty_shapes_underneath(
+        deleted_shapes: &Vec<(usize, usize)>,
+        shape_pos: (usize, usize),
+    ) -> usize {
+        let deleted_shapes_in_this_col = deleted_shapes
+            .iter()
+            .filter(|(_, col)| *col == shape_pos.1)
+            .collect::<Vec<_>>();
+
+        let deleted_shapes_underneath = deleted_shapes_in_this_col
+            .iter()
+            .filter(|(del_row, del_col)| shape_pos.1 == *del_col && shape_pos.0 < *del_row)
+            .count();
+        deleted_shapes_underneath
     }
 
     let all_shapes_have_fallen = shapes.iter().all(|e| {
