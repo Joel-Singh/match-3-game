@@ -42,7 +42,7 @@ pub fn map(app: &mut App) {
         .add_systems(OnExit(GameState::Map), cleanup);
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, map_finishes: Res<MapFinishes>) {
     commands
         .spawn((
             Map,
@@ -60,17 +60,26 @@ fn setup(mut commands: Commands) {
             parent
                 .spawn(get_board_button_bundle(BoardButton::Third))
                 .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(BoardButton::Third));
+                    parent.spawn(get_board_button_text_bundle(
+                        BoardButton::Third,
+                        &map_finishes,
+                    ));
                 });
             parent
                 .spawn(get_board_button_bundle(BoardButton::Second))
                 .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(BoardButton::Second));
+                    parent.spawn(get_board_button_text_bundle(
+                        BoardButton::Second,
+                        &map_finishes,
+                    ));
                 });
             parent
                 .spawn(get_board_button_bundle(BoardButton::First))
                 .with_children(|parent| {
-                    parent.spawn(get_board_button_text_bundle(BoardButton::First));
+                    parent.spawn(get_board_button_text_bundle(
+                        BoardButton::First,
+                        &map_finishes,
+                    ));
                 });
         });
 }
@@ -97,8 +106,11 @@ fn get_board_button_bundle(
     )
 }
 
-fn get_board_button_text_bundle(area: BoardButton) -> (Text, TextLayout, TextColor, Node, Name) {
-    let text_color = if area.map_available(&MapFinishes::default()) {
+fn get_board_button_text_bundle(
+    area: BoardButton,
+    map_finishes: &Res<MapFinishes>,
+) -> (Text, TextLayout, TextColor, Node, Name) {
+    let text_color = if area.map_available(&map_finishes) {
         GREEN_300
     } else {
         GRAY_950
