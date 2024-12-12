@@ -19,7 +19,7 @@ pub struct MatchMade();
 pub struct SwapShapes(Entity, Entity);
 
 #[derive(Event)]
-pub struct CleanupFallingAnimation;
+pub struct UpdateBoardStateAfterFallingAnimation;
 
 #[derive(Component)]
 pub struct Deletion;
@@ -46,7 +46,7 @@ pub(crate) fn board(app: &mut App) {
             Entity::from_raw(0),
             Entity::from_raw(0),
         ]))
-        .add_event::<CleanupFallingAnimation>()
+        .add_event::<UpdateBoardStateAfterFallingAnimation>()
         .add_systems(
             OnEnter(GameState::Board),
             (
@@ -79,7 +79,7 @@ pub(crate) fn board(app: &mut App) {
             )
                 .run_if(in_state(GameState::Board)),
         )
-        .add_observer(cleanup_falling_animation)
+        .add_observer(update_board_state)
         .add_systems(
             OnExit(GameState::Board),
             (
@@ -645,12 +645,12 @@ fn handle_deletions_and_animate(
     });
 
     if all_shapes_have_fallen {
-        commands.trigger(CleanupFallingAnimation);
+        commands.trigger(UpdateBoardStateAfterFallingAnimation);
     }
 }
 
-fn cleanup_falling_animation(
-    _: Trigger<CleanupFallingAnimation>,
+fn update_board_state(
+    _: Trigger<UpdateBoardStateAfterFallingAnimation>,
     shapes: Query<Entity, With<Shape>>,
     deleted_shapes_q: Query<Entity, With<Deletion>>,
     board_children: Query<&Children, With<Board>>,
