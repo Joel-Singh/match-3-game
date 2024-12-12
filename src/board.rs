@@ -71,7 +71,7 @@ pub(crate) fn board(app: &mut App) {
                     )
                         .chain()
                         .run_if(in_state(BoardState::InPlay)),
-                    handle_deletions,
+                    handle_deletions_and_animate,
                 )
                     .chain(),
                 update_shape_color,
@@ -565,7 +565,7 @@ fn handle_regular_matches(
     }
 }
 
-fn handle_deletions(
+fn handle_deletions_and_animate(
     to_delete: Query<Entity, With<Deletion>>,
     shapes: Query<Entity, With<Shape>>,
     board: Query<&Children, With<Board>>,
