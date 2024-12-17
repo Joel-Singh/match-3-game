@@ -99,7 +99,7 @@ fn get_board_button_bundle(
     area: BoardButton,
 ) -> (Button, BackgroundColor, Node, Name, BoardButton) {
     (
-        Button::default(),
+        Button,
         BackgroundColor(GRAY_50.into()),
         Node {
             width: Val::Px(50.),
@@ -117,7 +117,7 @@ fn get_board_button_text_bundle(
     area: BoardButton,
     map_finishes: &Res<MapFinishes>,
 ) -> (Text, TextLayout, TextColor, Node, Name) {
-    let text_color = if area.map_available(&map_finishes) {
+    let text_color = if area.map_available(map_finishes) {
         GREEN_300
     } else {
         GRAY_950

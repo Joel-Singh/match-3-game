@@ -315,8 +315,7 @@ fn handle_swap_shape_events(
 
                     let line_of_shapes = locations
                         .iter()
-                        .filter_map(|(r, c)| get_entity(*r, *c, board_children))
-                        .map(|e| *e)
+                        .filter_map(|(r, c)| get_entity(*r, *c, board_children)).copied()
                         .collect::<Vec<_>>();
 
                     line_of_shapes
@@ -329,7 +328,7 @@ fn handle_swap_shape_events(
             board_children: &Children,
             commands: &mut Commands,
         ) {
-            explode_surrounding_cells(&entity, &board_children, commands);
+            explode_surrounding_cells(&entity, board_children, commands);
             commands.entity(entity).insert(Deletion);
         }
 
@@ -351,14 +350,14 @@ fn handle_swap_shape_events(
                 col: i32,
             ) -> Vec<Entity> {
                 let surrounding_shapes = [
-                    get_entity(row - 1, col - 1, &board_children),
-                    get_entity(row - 1, col, &board_children),
-                    get_entity(row - 1, col + 1, &board_children),
-                    get_entity(row, col - 1, &board_children),
-                    get_entity(row, col + 1, &board_children),
-                    get_entity(row + 1, col - 1, &board_children),
-                    get_entity(row + 1, col, &board_children),
-                    get_entity(row + 1, col + 1, &board_children),
+                    get_entity(row - 1, col - 1, board_children),
+                    get_entity(row - 1, col, board_children),
+                    get_entity(row - 1, col + 1, board_children),
+                    get_entity(row, col - 1, board_children),
+                    get_entity(row, col + 1, board_children),
+                    get_entity(row + 1, col - 1, board_children),
+                    get_entity(row + 1, col, board_children),
+                    get_entity(row + 1, col + 1, board_children),
                 ];
 
                 surrounding_shapes
@@ -381,13 +380,13 @@ fn handle_swap_shape_events(
         just_pressed_button: &Entity,
         children: &Children,
     ) -> bool {
-        let (x_1, y_1) = get_row_col(last_pressed_button, &children);
-        let (x_2, y_2) = get_row_col(just_pressed_button, &children);
+        let (x_1, y_1) = get_row_col(last_pressed_button, children);
+        let (x_2, y_2) = get_row_col(just_pressed_button, children);
         let delta_x = (x_1 as i32 - x_2 as i32).abs();
         let delta_y = (y_1 as i32 - y_2 as i32).abs();
 
-        let is_next_to = (delta_x + delta_y) == 1;
-        is_next_to
+        
+        (delta_x + delta_y) == 1
     }
 }
 
@@ -452,8 +451,8 @@ fn spawn_eliminators_from_matches(
         );
 
         horizontal_matches.append(&mut vertical_matches);
-        let all_matches = horizontal_matches;
-        all_matches
+        
+        horizontal_matches
     }
 }
 
@@ -486,7 +485,7 @@ fn spawn_liners_from_matches(
     for (matches, shape) in matches_and_shapes.iter() {
         for r#match in *matches {
             let mut all_shapes = r#match.matched_shapes.clone();
-            all_shapes.push(r#match.center.clone());
+            all_shapes.push(r#match.center);
 
             let just_swapped_shape_in_liner_match = all_shapes.iter().find(|e| {
                 let just_swapped_shapes = just_swapped_shapes.0;
@@ -610,7 +609,7 @@ fn update_board_after_deletions(
         commands.entity(shape).insert(get_random_shape());
     }
 
-    let mut new_board_state = board_children.iter().map(|e| *e).collect::<Vec<_>>();
+    let mut new_board_state = board_children.iter().copied().collect::<Vec<_>>();
     for col in 1..=BOARD_SIZE {
         let mut original_column: Vec<Entity> = vec![];
         for row in 1..=BOARD_SIZE {
@@ -636,7 +635,7 @@ fn update_board_after_deletions(
                 .filter(|&e| deleted_shapes_q.get(*e).is_ok())
                 .count();
 
-            if !deleted_shapes_q.get(shape).is_ok() {
+            if deleted_shapes_q.get(shape).is_err() {
                 commands
                     .entity(shape)
                     .entry::<Node>()
@@ -682,16 +681,16 @@ fn get_matches_general<const N: usize>(
                 return false;
             }
         }
-        return true;
+        true
     };
 
     let not_already_matched = |shapes: &[Entity]| {
         for shape in shapes {
-            if let Ok(_) = deleted_shapes.get(*shape) {
+            if deleted_shapes.get(*shape).is_ok() {
                 return false;
             }
         }
-        return true;
+        true
     };
 
     let mut matches: Vec<Match> = vec![];
@@ -836,7 +835,7 @@ mod utils {
         let index = board.iter().position(|&e| e == *shape).unwrap();
         let row = index / BOARD_SIZE + 1;
         let col = (index % BOARD_SIZE) + 1;
-        return (row, col);
+        (row, col)
     }
 }
 
@@ -885,13 +884,13 @@ mod shape {
         let colors = [Shape::Red, Shape::Pink, Shape::Blue, Shape::Green];
         let random_color = *colors.choose(&mut rng).unwrap();
 
-        return random_color;
+        random_color
     }
 
     pub fn create_shape(shape: Shape) -> (Shape, Button, Node, BackgroundColor, Name) {
         (
             shape,
-            Button::default(),
+            Button,
             Node {
                 width: Val::Auto,
                 height: Val::Auto,

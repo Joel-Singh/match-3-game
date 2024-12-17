@@ -17,6 +17,7 @@ pub struct TotalMatches(u32);
 pub struct NeededMatches(u32);
 
 #[derive(Resource, Debug)]
+#[derive(Default)]
 pub struct MapFinishes {
     map1: bool,
     map2: bool,
@@ -24,16 +25,6 @@ pub struct MapFinishes {
     map4: bool,
 }
 
-impl Default for MapFinishes {
-    fn default() -> Self {
-        MapFinishes {
-            map1: false,
-            map2: false,
-            map3: false,
-            map4: false,
-        }
-    }
-}
 
 #[derive(Resource, Default, PartialEq)]
 pub enum CurrentMap {
@@ -47,7 +38,7 @@ pub enum CurrentMap {
 
 impl CurrentMap {
     pub fn get(&self) -> &Self {
-        return self;
+        self
     }
 }
 
@@ -81,7 +72,7 @@ fn main() {
 }
 
 fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    commands.spawn(Camera2d);
 }
 
 fn increment_total_matches(
