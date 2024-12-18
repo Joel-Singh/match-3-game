@@ -13,6 +13,9 @@ use win_screen::win_screen;
 mod start_screen;
 use start_screen::start_screen;
 
+mod explanation_screen;
+use explanation_screen::explanation_screen;
+
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
@@ -50,6 +53,7 @@ pub enum GameState {
     WinScreen,
     #[default]
     StartScreen,
+    ExplanationScreen,
 }
 
 fn main() {
@@ -64,6 +68,7 @@ fn main() {
         .add_plugins(map)
         .add_plugins(win_screen)
         .add_plugins(start_screen)
+        .add_plugins(explanation_screen)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
         .add_systems(FixedUpdate, go_to_map_or_winscreen_after_enough_matches)
