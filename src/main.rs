@@ -10,21 +10,22 @@ use map::map;
 mod win_screen;
 use win_screen::win_screen;
 
+mod start_screen;
+use start_screen::start_screen;
+
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
 #[derive(Resource)]
 pub struct NeededMatches(u32);
 
-#[derive(Resource, Debug)]
-#[derive(Default)]
+#[derive(Resource, Debug, Default)]
 pub struct MapFinishes {
     map1: bool,
     map2: bool,
     map3: bool,
     map4: bool,
 }
-
 
 #[derive(Resource, Default, PartialEq)]
 pub enum CurrentMap {
@@ -44,10 +45,11 @@ impl CurrentMap {
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
-    #[default]
     Map,
     Board,
     WinScreen,
+    #[default]
+    StartScreen,
 }
 
 fn main() {
@@ -61,6 +63,7 @@ fn main() {
         .add_plugins(board)
         .add_plugins(map)
         .add_plugins(win_screen)
+        .add_plugins(start_screen)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
         .add_systems(FixedUpdate, go_to_map_or_winscreen_after_enough_matches)
