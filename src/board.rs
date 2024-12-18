@@ -315,7 +315,8 @@ fn handle_swap_shape_events(
 
                     let line_of_shapes = locations
                         .iter()
-                        .filter_map(|(r, c)| get_entity(*r, *c, board_children)).copied()
+                        .filter_map(|(r, c)| get_entity(*r, *c, board_children))
+                        .copied()
                         .collect::<Vec<_>>();
 
                     line_of_shapes
@@ -385,7 +386,6 @@ fn handle_swap_shape_events(
         let delta_x = (x_1 as i32 - x_2 as i32).abs();
         let delta_y = (y_1 as i32 - y_2 as i32).abs();
 
-        
         (delta_x + delta_y) == 1
     }
 }
@@ -451,7 +451,7 @@ fn spawn_eliminators_from_matches(
         );
 
         horizontal_matches.append(&mut vertical_matches);
-        
+
         horizontal_matches
     }
 }
