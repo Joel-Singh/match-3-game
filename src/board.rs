@@ -32,7 +32,7 @@ enum BoardState {
 }
 
 const BOARD_POSITION: Transform = Transform::from_xyz(-200.0, 200.0, 0.0);
-const BOARD_SIZE: usize = 5;
+pub const BOARD_SIZE: usize = 5;
 const BOARD_TOTAL_SHAPES: usize = BOARD_SIZE * BOARD_SIZE;
 
 pub(crate) fn board(app: &mut App) {
@@ -122,23 +122,25 @@ fn layout_nodes(
 
 pub fn spawn_board(mut commands: Commands) {
     commands
-        .spawn((
-            Board,
-            Node {
-                width: Val::Px(400.),
-                height: Val::Px(400.),
-                padding: UiRect::all(Val::Px(5.)),
-                grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
-                display: Display::Grid,
-                margin: UiRect::all(Val::Auto),
-                overflow: Overflow::clip(),
-                ..default()
-            },
-            BackgroundColor(Srgba::new(1.0, 1.0, 1.0, 0.1).into()),
-            Name::new("Board"),
-        ))
+        .spawn((Board, get_board_styling(), Name::new("Board")))
         .insert(BOARD_POSITION);
+}
+
+pub fn get_board_styling() -> (Node, BackgroundColor) {
+    return (
+        Node {
+            width: Val::Px(400.),
+            height: Val::Px(400.),
+            padding: UiRect::all(Val::Px(5.)),
+            grid_template_columns: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+            grid_template_rows: RepeatedGridTrack::fr(BOARD_SIZE as u16, 1.0),
+            display: Display::Grid,
+            margin: UiRect::all(Val::Auto),
+            overflow: Overflow::clip(),
+            ..default()
+        },
+        BackgroundColor(Srgba::new(1.0, 1.0, 1.0, 0.1).into()),
+    );
 }
 
 fn spawn_shapes_into_board(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
@@ -839,11 +841,13 @@ mod utils {
     }
 }
 
-mod shape {
+pub mod shape {
     use bevy::{color::palettes::tailwind::*, prelude::*};
     use rand::seq::SliceRandom;
 
-    #[derive(Component, Reflect, Clone, Copy, PartialEq)]
+    use super::get_shape_styling;
+
+    #[derive(Component, Reflect, Clone, Copy, PartialEq, Debug)]
     #[require(Button, Node, BackgroundColor)]
     pub enum Shape {
         Red,
@@ -887,21 +891,22 @@ mod shape {
         random_color
     }
 
-    pub fn create_shape(shape: Shape) -> (Shape, Button, Node, BackgroundColor, Name) {
-        (
-            shape,
-            Button,
-            Node {
-                width: Val::Auto,
-                height: Val::Auto,
-                margin: UiRect::all(Val::Px(2.)),
-                bottom: Val::Percent(0.0),
-                ..default()
-            },
-            shape.color(),
-            Name::new("Shape"),
-        )
+    pub fn create_shape(shape: Shape) -> (Shape, Button, (Node, BackgroundColor), Name) {
+        (shape, Button, get_shape_styling(shape), Name::new("Shape"))
     }
+}
+
+pub fn get_shape_styling(shape: Shape) -> (Node, BackgroundColor) {
+    (
+        Node {
+            width: Val::Auto,
+            height: Val::Auto,
+            margin: UiRect::all(Val::Px(2.)),
+            bottom: Val::Percent(0.0),
+            ..default()
+        },
+        shape.color(),
+    )
 }
 
 mod match_counter {
