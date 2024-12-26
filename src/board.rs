@@ -127,7 +127,7 @@ pub fn spawn_board(mut commands: Commands) {
 }
 
 pub fn get_board_styling() -> (Node, BackgroundColor) {
-    return (
+    (
         Node {
             width: Val::Px(400.),
             height: Val::Px(400.),
@@ -140,7 +140,7 @@ pub fn get_board_styling() -> (Node, BackgroundColor) {
             ..default()
         },
         BackgroundColor(Srgba::new(1.0, 1.0, 1.0, 0.1).into()),
-    );
+    )
 }
 
 fn spawn_shapes_into_board(mut board: Query<Entity, With<Board>>, mut commands: Commands) {
@@ -818,10 +818,10 @@ mod utils {
     use bevy::prelude::*;
 
     pub fn get_entity(row: i32, col: i32, board: &Children) -> Option<&Entity> {
-        return match get_index(row, col) {
+        match get_index(row, col) {
             Some(index) => board.get(index as usize),
             None => None,
-        };
+        }
     }
 
     pub fn get_index(row: i32, col: i32) -> Option<i32> {
