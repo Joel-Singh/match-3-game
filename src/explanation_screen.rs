@@ -1,9 +1,6 @@
 use std::iter::repeat_with;
 
-use bevy::{
-    color::palettes::tailwind::{GRAY_950, RED_50},
-    prelude::*,
-};
+use bevy::prelude::*;
 
 use crate::{
     board::{get_board_styling, get_shape_styling, shape::Shape, BOARD_SIZE},
@@ -31,16 +28,48 @@ fn setup(mut commands: Commands) {
     let blue = spawn_board(&mut commands, get_board_shapes(Shape::Blue));
     let green = spawn_board(&mut commands, get_board_shapes(Shape::Green));
 
+    let explanation_board_container = commands
+        .spawn((
+            Node {
+                column_gap: Val::Px(40.),
+                ..default()
+            },
+            Name::new("Explanation Board Container"),
+        ))
+        .id();
+
+    commands
+        .entity(explanation_board_container)
+        .add_children(&[red, blue, green]);
+
+    let text = commands
+        .spawn((
+            Text::new("I love Daira"),
+            Name::new("Explanation Text"),
+            Node {
+                margin: UiRect::top(Val::Auto),
+                ..default()
+            },
+        ))
+        .id();
+
     let mut root = commands.spawn((
         ExplanationScreen,
         Node {
-            display: Display::Flex,
+            display: Display::Grid,
+            width: Val::Vw(100.),
+            height: Val::Vh(100.),
+            grid_template_rows: vec![GridTrack::fr(0.3), GridTrack::fr(1.0)],
+            grid_auto_flow: GridAutoFlow::Column,
+            justify_items: JustifyItems::Center,
+            align_items: AlignItems::Center,
             ..default()
         },
         Name::new("ExplanationScreen Root"),
     ));
 
-    root.add_children(&[red, blue, green]);
+    root.add_child(text);
+    root.add_child(explanation_board_container);
 }
 
 fn spawn_board(commands: &mut Commands, shapes: [Shape; BOARD_SIZE * BOARD_SIZE]) -> Entity {
