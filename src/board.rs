@@ -813,7 +813,7 @@ fn update_map_finishes(mut map_finishes: ResMut<MapFinishes>, current_map: Res<C
     }
 }
 
-mod utils {
+pub mod utils {
     use crate::board::BOARD_SIZE;
     use bevy::prelude::*;
 
