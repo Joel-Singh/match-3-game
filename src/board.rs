@@ -24,6 +24,9 @@ pub struct Deletion;
 #[derive(Resource)]
 pub struct JustSwappedShapes([Entity; 2]);
 
+#[derive(Component)]
+pub struct BoardNodeRoot;
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 enum BoardState {
     #[default]
@@ -81,6 +84,7 @@ pub(crate) fn board(app: &mut App) {
             (
                 delete_entities,
                 match_counter::delete_entities,
+                delete_board_root,
                 reset_total_matches,
                 update_map_finishes,
             ),
@@ -114,6 +118,7 @@ fn layout_nodes(
             ..default()
         },
         Name::new("Board and match counter container"),
+        BoardNodeRoot,
     ));
 
     container.add_child(board.single());
@@ -797,6 +802,12 @@ fn get_matches_three(
 
 fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
     commands.entity(board.single()).despawn_recursive();
+}
+
+fn delete_board_root(mut commands: Commands, board_node_root: Query<Entity, With<BoardNodeRoot>>) {
+    commands
+        .entity(board_node_root.single())
+        .despawn_recursive();
 }
 
 fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
