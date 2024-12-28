@@ -18,6 +18,7 @@ use explanation_screen::explanation_screen;
 
 mod dev_hotkeys;
 use dev_hotkeys::dev_hotkeys;
+
 #[derive(Resource)]
 pub struct TotalMatches(u32);
 
@@ -74,7 +75,7 @@ fn main() {
         .add_plugins(explanation_screen)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
-        .add_systems(FixedUpdate, go_to_map_or_winscreen_after_enough_matches)
+        .add_systems(FixedUpdate, go_to_next_screen)
         .insert_resource(TotalMatches(0))
         .insert_resource(NeededMatches(30))
         .insert_resource(MapFinishes::default())
@@ -95,7 +96,7 @@ fn increment_total_matches(
     }
 }
 
-fn go_to_map_or_winscreen_after_enough_matches(
+fn go_to_next_screen(
     total_matches: Res<TotalMatches>,
     needed_matches: Res<NeededMatches>,
     mut state: ResMut<NextState<GameState>>,
@@ -105,7 +106,7 @@ fn go_to_map_or_winscreen_after_enough_matches(
         if *current_map == CurrentMap::Four {
             state.set(GameState::WinScreen);
         } else {
-            state.set(GameState::Map);
+            state.set(GameState::ExplanationScreen);
         }
     }
 }
