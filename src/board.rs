@@ -81,13 +81,7 @@ pub(crate) fn board(app: &mut App) {
         )
         .add_systems(
             OnExit(GameState::Board),
-            (
-                delete_entities,
-                match_counter::delete_entities,
-                delete_board_root,
-                reset_total_matches,
-                update_map_finishes,
-            ),
+            (delete_entities, reset_total_matches, update_map_finishes),
         );
 }
 
@@ -108,7 +102,7 @@ fn layout_nodes(
     match_counter: Query<Entity, With<MatchCounter>>,
     mut commands: Commands,
 ) {
-    let mut container = commands.spawn((
+    let mut root = commands.spawn((
         Node {
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
@@ -121,8 +115,8 @@ fn layout_nodes(
         BoardNodeRoot,
     ));
 
-    container.add_child(board.single());
-    container.add_child(match_counter.single());
+    root.add_child(board.single());
+    root.add_child(match_counter.single());
 }
 
 pub fn spawn_board(mut commands: Commands) {
@@ -800,14 +794,8 @@ fn get_matches_three(
     matches
 }
 
-fn delete_entities(mut commands: Commands, board: Query<Entity, With<Board>>) {
+fn delete_entities(mut commands: Commands, board: Query<Entity, With<BoardNodeRoot>>) {
     commands.entity(board.single()).despawn_recursive();
-}
-
-fn delete_board_root(mut commands: Commands, board_node_root: Query<Entity, With<BoardNodeRoot>>) {
-    commands
-        .entity(board_node_root.single())
-        .despawn_recursive();
 }
 
 fn reset_total_matches(mut total_matches: ResMut<TotalMatches>) {
@@ -947,12 +935,5 @@ mod match_counter {
     ) {
         let mut text = match_counter_text.single_mut();
         text.0 = total_matches.0.to_string() + "/" + &needed_matches.0.to_string();
-    }
-
-    pub fn delete_entities(
-        mut commands: Commands,
-        match_counter: Query<Entity, With<MatchCounter>>,
-    ) {
-        commands.entity(match_counter.single()).despawn_recursive();
     }
 }
