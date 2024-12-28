@@ -7,7 +7,7 @@ pub fn dev_hotkeys(app: &mut App) {
 }
 
 fn increment_match_on_z(mut match_made: EventWriter<MatchMade>, keys: Res<ButtonInput<KeyCode>>) {
-    if keys.just_pressed(KeyCode::KeyZ) {
+    if keys.pressed(KeyCode::KeyZ) {
         match_made.send(MatchMade::default());
     }
 }
