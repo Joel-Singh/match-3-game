@@ -123,20 +123,20 @@ fn spawn_board(
     board
 }
 
-fn spawn_liner_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
+fn spawn_liner_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
     return [
         spawn_board(
-            &mut commands,
+            commands,
             get_liner_example1(),
             Name::new("Liner Example 1"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_liner_example2(),
             Name::new("Liner Example 2"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_liner_example3(),
             Name::new("Liner Example 3"),
         ),
@@ -150,7 +150,7 @@ fn spawn_liner_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
         board_shapes[get_index(4, 3).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
         board_shapes[get_index(5, 3).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_liner_example2() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -158,7 +158,7 @@ fn spawn_liner_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
         board_shapes[get_index(3, 3).unwrap() as usize] =
             ShapeOrInvisible::Shape(Shape::VerticalLiner);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_liner_example3() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -169,24 +169,24 @@ fn spawn_liner_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
         board_shapes[get_index(4, 3).unwrap() as usize] = ShapeOrInvisible::Invisible;
         board_shapes[get_index(5, 3).unwrap() as usize] = ShapeOrInvisible::Invisible;
 
-        return board_shapes;
+        board_shapes
     }
 }
 
-fn spawn_bomb_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
+fn spawn_bomb_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
     return [
         spawn_board(
-            &mut commands,
+            commands,
             get_bomb_example1(),
             Name::new("Bomb Example 1"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_bomb_example2(),
             Name::new("Bomb Example 2"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_bomb_example3(),
             Name::new("Bomb Example 3"),
         ),
@@ -200,14 +200,14 @@ fn spawn_bomb_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
         board_shapes[get_index(3, 4).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
         board_shapes[get_index(4, 4).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_bomb_example2() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
         let mut board_shapes = get_board_shapes(Shape::Blue);
         board_shapes[get_index(2, 4).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Bomb);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_bomb_example3() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -222,24 +222,24 @@ fn spawn_bomb_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
         board_shapes[get_index(3, 4).unwrap() as usize] = ShapeOrInvisible::Invisible;
         board_shapes[get_index(3, 5).unwrap() as usize] = ShapeOrInvisible::Invisible;
 
-        return board_shapes;
+        board_shapes
     }
 }
 
-fn spawn_eliminator_explanation_boards(mut commands: &mut Commands) -> [Entity; 3] {
+fn spawn_eliminator_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
     return [
         spawn_board(
-            &mut commands,
+            commands,
             get_eliminator_example1(),
             Name::new("Eliminator Board 1"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_eliminator_example2(),
             Name::new("Eliminator Board 2"),
         ),
         spawn_board(
-            &mut commands,
+            commands,
             get_eliminator_example3(),
             Name::new("Eliminator Board 3"),
         ),
@@ -253,7 +253,7 @@ fn spawn_eliminator_explanation_boards(mut commands: &mut Commands) -> [Entity; 
         board_shapes[get_index(3, 4).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
         board_shapes[get_index(3, 5).unwrap() as usize] = ShapeOrInvisible::Shape(Shape::Red);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_eliminator_example2() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -261,7 +261,7 @@ fn spawn_eliminator_explanation_boards(mut commands: &mut Commands) -> [Entity; 
         board_shapes[get_index(3, 3).unwrap() as usize] =
             ShapeOrInvisible::Shape(Shape::Eliminator);
 
-        return board_shapes;
+        board_shapes
     }
 
     fn get_eliminator_example3() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -283,7 +283,7 @@ fn spawn_eliminator_explanation_boards(mut commands: &mut Commands) -> [Entity; 
         board_shapes[get_index(2, 5).unwrap() as usize] = ShapeOrInvisible::Invisible;
         board_shapes[get_index(4, 5).unwrap() as usize] = ShapeOrInvisible::Invisible;
 
-        return board_shapes;
+        board_shapes
     }
 }
 
