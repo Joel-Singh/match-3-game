@@ -38,12 +38,16 @@ fn setup(mut commands: Commands, map_finishes: Res<MapFinishes>) {
         .id();
 
     let mut explanation_boards: Option<[Entity; 3]> = None;
+    let mut explanation_text: Option<String> = None;
     if map_finishes.map3 {
         explanation_boards = Some(spawn_eliminator_explanation_boards(&mut commands));
+        explanation_text = Some("Eliminator unlocked, destroys randomly".to_string());
     } else if map_finishes.map2 {
         explanation_boards = Some(spawn_liner_explanation_boards(&mut commands));
+        explanation_text = Some("Liner unlocked, destroys in a line,".to_string());
     } else if map_finishes.map1 {
         explanation_boards = Some(spawn_bomb_explanation_boards(&mut commands));
+        explanation_text = Some("Bomb unlocked, destroys in a 3x3".to_string());
     }
 
     let explanation_boards = explanation_boards.unwrap();
@@ -54,7 +58,7 @@ fn setup(mut commands: Commands, map_finishes: Res<MapFinishes>) {
 
     let text = commands
         .spawn((
-            Text::new("I love Daira"),
+            Text::new(explanation_text.unwrap()),
             Name::new("Explanation Text"),
             Node {
                 margin: UiRect::top(Val::Auto),
@@ -125,21 +129,9 @@ fn spawn_board(
 
 fn spawn_liner_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
     return [
-        spawn_board(
-            commands,
-            get_liner_example1(),
-            Name::new("Liner Example 1"),
-        ),
-        spawn_board(
-            commands,
-            get_liner_example2(),
-            Name::new("Liner Example 2"),
-        ),
-        spawn_board(
-            commands,
-            get_liner_example3(),
-            Name::new("Liner Example 3"),
-        ),
+        spawn_board(commands, get_liner_example1(), Name::new("Liner Example 1")),
+        spawn_board(commands, get_liner_example2(), Name::new("Liner Example 2")),
+        spawn_board(commands, get_liner_example3(), Name::new("Liner Example 3")),
     ];
 
     fn get_liner_example1() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
@@ -175,21 +167,9 @@ fn spawn_liner_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
 
 fn spawn_bomb_explanation_boards(commands: &mut Commands) -> [Entity; 3] {
     return [
-        spawn_board(
-            commands,
-            get_bomb_example1(),
-            Name::new("Bomb Example 1"),
-        ),
-        spawn_board(
-            commands,
-            get_bomb_example2(),
-            Name::new("Bomb Example 2"),
-        ),
-        spawn_board(
-            commands,
-            get_bomb_example3(),
-            Name::new("Bomb Example 3"),
-        ),
+        spawn_board(commands, get_bomb_example1(), Name::new("Bomb Example 1")),
+        spawn_board(commands, get_bomb_example2(), Name::new("Bomb Example 2")),
+        spawn_board(commands, get_bomb_example3(), Name::new("Bomb Example 3")),
     ];
 
     fn get_bomb_example1() -> [ShapeOrInvisible; BOARD_SIZE * BOARD_SIZE] {
