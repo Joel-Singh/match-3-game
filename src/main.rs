@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod board;
 use board::{board, MatchMade};
@@ -17,7 +16,6 @@ mod explanation_screen;
 use explanation_screen::explanation_screen;
 
 mod dev_hotkeys;
-use dev_hotkeys::dev_hotkeys;
 
 #[derive(Resource)]
 pub struct TotalMatches(u32);
@@ -66,12 +64,12 @@ fn main() {
             ..default()
         }))
         .init_state::<GameState>()
-        .add_plugins(WorldInspectorPlugin::new())
+        //.add_plugins(WorldInspectorPlugin::new())
+        //.add_plugins(dev_hotkeys)
         .add_plugins(board)
         .add_plugins(map)
         .add_plugins(win_screen)
         .add_plugins(start_screen)
-        .add_plugins(dev_hotkeys)
         .add_plugins(explanation_screen)
         .add_systems(Startup, setup_camera)
         .add_systems(FixedUpdate, increment_total_matches)
