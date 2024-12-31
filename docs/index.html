@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<body style="margin: 0px;">
+  <head>
+    <title>Match 3 By Joel</title>
+    <style>
+      canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+
+      body {
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  
+  <script type="module">
+    import init from './match-3.js'
+
+    init().catch((error) => {
+      if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
+        throw error;
+      }
+    });
+  </script>
+</body>
+
+</html>
