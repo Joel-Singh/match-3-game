@@ -1,3 +1,8 @@
+if [[ -n $(git status --porcelain) ]]; then 
+	echo "Please commit all changes before building"
+	exit 1
+fi
+
 export RUSTFLAGS="--cfg=web_sys_unstable_apis"
 cargo build --release --target wasm32-unknown-unknown
 
